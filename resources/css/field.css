@@ -1,0 +1,31 @@
+@tailwind utilities;
+
+/*
+ * Nova's app.css already imports codemirror/lib/codemirror.css, but relying on
+ * that is the most likely thing to break on a Nova upgrade (CodeMirror 5 is in
+ * maintenance). Scope our own copy under the editor so the two cannot collide.
+ */
+.njf-editor .CodeMirror {
+  height: auto;
+  font-family: theme('fontFamily.mono');
+  font-size: theme('fontSize.xs');
+  line-height: 1.6;
+}
+
+.njf-editor .CodeMirror-scroll {
+  min-height: 6rem;
+}
+
+.njf-cm-error-line {
+  background-color: rgb(239 68 68 / 0.1);
+}
+
+/* Expand/collapse should not animate for users who asked it not to. */
+@media (prefers-reduced-motion: reduce) {
+  .njf-editor *,
+  .njf-editor *::before,
+  .njf-editor *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

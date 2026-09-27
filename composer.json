@@ -1,10 +1,12 @@
 {
     "name": "gabrielesbaiz/nova-field-json",
-    "description": "Customer Nova field for JSON data.",
+    "description": "Composable JSON fields and a JSON editor field for Laravel Nova.",
     "keywords": [
-        "Gabriele Sbaiz",
+        "gabriele sbaiz",
         "laravel",
-        "nova-field-json"
+        "nova",
+        "nova-field",
+        "json"
     ],
     "homepage": "https://github.com/gabrielesbaiz/nova-field-json",
     "license": "MIT",
@@ -16,39 +18,44 @@
         }
     ],
     "require": {
-        "php": "^8.0",
-        "spatie/laravel-package-tools": "^1.16",
-        "illuminate/support": "^10.0|^11.0|^12.0"
+        "php": "^8.2",
+        "ext-json": "*",
+        "illuminate/contracts": "^11.0|^12.0",
+        "illuminate/database": "^11.0|^12.0",
+        "illuminate/support": "^11.0|^12.0",
+        "laravel/nova": "^5.0"
     },
     "require-dev": {
-        "laravel/nova": "^5.0",
+        "larastan/larastan": "^3.1",
         "laravel/nova-devtool": "^1.7",
-        "laravel/pint": "^1.14",
-        "nunomaduro/collision": "^8.1.1||^7.10.0",
-        "orchestra/testbench": "^10.0.0||^9.0.0||^8.22.0",
-        "pestphp/pest": "^3.0",
+        "laravel/pint": "^1.18",
+        "nunomaduro/collision": "^8.5",
+        "orchestra/testbench": "^9.5|^10.0",
+        "pestphp/pest": "^3.5",
         "pestphp/pest-plugin-arch": "^3.0",
-        "pestphp/pest-plugin-laravel": "^3.0"
+        "pestphp/pest-plugin-laravel": "^3.0",
+        "phpstan/phpstan-deprecation-rules": "^2.0"
     },
     "autoload": {
         "psr-4": {
-            "Gabrielesbaiz\\NovaFieldJson\\": "src/",
-            "Gabrielesbaiz\\NovaFieldJson\\Database\\Factories\\": "database/factories/"
+            "Gabrielesbaiz\\NovaFieldJson\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
             "Gabrielesbaiz\\NovaFieldJson\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/"
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\": "workbench/database/"
         }
     },
     "scripts": {
-        "post-autoload-dump": "@composer run prepare",
+        "post-autoload-dump": "@prepare",
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
-        "analyse": "vendor/bin/phpstan analyse",
-        "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --coverage",
-        "format": "vendor/bin/pint"
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "analyse": "@php vendor/bin/phpstan analyse",
+        "test": "@php vendor/bin/pest",
+        "test-coverage": "@php vendor/bin/pest --coverage --min=90",
+        "format": "@php vendor/bin/pint"
     },
     "config": {
         "sort-packages": true,
@@ -60,11 +67,11 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Gabrielesbaiz\\NovaFieldJson\\NovaFieldJsonServiceProvider"
+                "Gabrielesbaiz\\NovaFieldJson\\FieldServiceProvider"
             ]
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true,
     "repositories": [
         {

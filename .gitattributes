@@ -1,20 +1,36 @@
 # Path-based git attributes
 # https://www.kernel.org/pub/software/scm/git/docs/gitattributes.html
 
-# Ignore all test and documentation with "export-ignore".
-/.github            export-ignore
-/.gitattributes     export-ignore
-/.gitignore         export-ignore
-/phpunit.xml.dist   export-ignore
-/art                export-ignore
-/docs               export-ignore
-/tests              export-ignore
-/workbench          export-ignore
-/.editorconfig      export-ignore
-/.php_cs.dist.php   export-ignore
-/psalm.xml          export-ignore
-/psalm.xml.dist     export-ignore
-/testbench.yaml     export-ignore
-/UPGRADING.md       export-ignore
-/phpstan.neon.dist  export-ignore
+# Exclude development-only paths from the distributed package.
+# NOTE: /dist is deliberately NOT export-ignored — it is the only thing a
+# consuming Nova application actually loads.
+
+# Repo tooling
+/.github                export-ignore
+/.gitattributes         export-ignore
+/.gitignore             export-ignore
+/.editorconfig          export-ignore
+/testbench.yaml         export-ignore
+
+# PHP tooling
+/phpunit.xml.dist       export-ignore
+/phpstan.neon.dist      export-ignore
 /phpstan-baseline.neon  export-ignore
+/pint.json              export-ignore
+/tests                  export-ignore
+/workbench              export-ignore
+
+# Frontend tooling
+/resources              export-ignore
+/package.json           export-ignore
+/package-lock.json      export-ignore
+/webpack.mix.js         export-ignore
+/tailwind.config.js     export-ignore
+/postcss.config.js      export-ignore
+/vitest.config.js       export-ignore
+/node_modules           export-ignore
+
+# Docs
+/art                    export-ignore
+/docs                   export-ignore
+/UPGRADING.md           export-ignore

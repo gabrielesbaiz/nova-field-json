@@ -1,0 +1,49 @@
+name: tests
+
+on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # Secrets are not exposed to forked pull requests, and Nova cannot be
+    # installed without them, so those runs would fail confusingly.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+        laravel: ['11.*', '12.*']
+        stability: [prefer-lowest, prefer-stable]
+
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }} / ${{ matrix.stability }}
+
+    env:
+      # Preferred over `composer config --global`: one less step, and the
+      # credentials are masked automatically.
+      COMPOSER_AUTH: '{"http-basic":{"nova.laravel.com":{"username":"${{ secrets.NOVA_USERNAME }}","password":"${{ secrets.NOVA_LICENSE_KEY }}"}}}'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json, sqlite3, mbstring
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer require "illuminate/contracts:${{ matrix.laravel }}" --no-interaction --no-update
+          composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress
+
+      - name: Run tests
+        run: vendor/bin/pest --ci

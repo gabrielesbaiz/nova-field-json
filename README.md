@@ -1,237 +1,152 @@
-# NovaFieldJson
+# NovaField Json
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/gabrielesbaiz/nova-field-json.svg?style=flat-square)](https://packagist.org/packages/gabrielesbaiz/nova-field-json)
-[![Total Downloads](https://img.shields.io/packagist/dt/gabrielesbaiz/nova-field-json.svg?style=flat-square)](https://packagist.org/packages/gabrielesbaiz/nova-field-json)
+Structured data in a JSON column for Laravel Nova — compose ordinary Nova fields into one column, or hand the whole column to the user as a tree, key/value, raw or repeatable-row editor.
 
-Customer Nova field for JSON data.
+[![Latest version](https://img.shields.io/packagist/v/gabrielesbaiz/nova-field-json.svg?style=flat-square)](https://packagist.org/packages/gabrielesbaiz/nova-field-json)
+[![PHP](https://img.shields.io/packagist/dependency-v/gabrielesbaiz/nova-field-json/php?style=flat-square)](composer.json)
+[![Laravel](https://img.shields.io/packagist/dependency-v/gabrielesbaiz/nova-field-json/illuminate%2Fsupport?style=flat-square&label=laravel)](composer.json)
+[![Downloads](https://img.shields.io/packagist/dt/gabrielesbaiz/nova-field-json.svg?style=flat-square)](https://packagist.org/packages/gabrielesbaiz/nova-field-json)
+[![Stars](https://img.shields.io/github/stars/gabrielesbaiz/nova-field-json?style=flat-square&logo=github)](https://github.com/gabrielesbaiz/nova-field-json/stargazers)
+[![Sponsor](https://img.shields.io/github/sponsors/gabrielesbaiz?style=flat-square&label=sponsor&logo=github)](https://github.com/sponsors/gabrielesbaiz)
 
-Original code from [armincms/json](https://github.com/armincms/json)
+### 📖 [Read the documentation →](https://gabrielesbaiz.github.io/nova-field-json/)
 
-## Features
+Both fields end to end, every storage option, the full method tables, seven
+recipes, nine troubleshooting entries and the 2.0 upgrade path.
 
-- ✅ Advanced Json support
-- ✅ Basic usage
-- ✅ Nested usage
-- ✅ Action usage
-- ✅ Showing / Hiding fields
-- ✅ Save last values
-- ✅ Separated data
-- ✅ Fillable values
-- ✅ Null values
-- ✅ Autocasting
+> [!CAUTION]
+> **Upgrading from 1.x?** Read [UPGRADING.md](UPGRADING.md) first. `NovaFieldJson`
+> is now `Json`, `saveHistory()` is gone, and three fixes change what gets
+> written to your columns — `Boolean` now stores `true` instead of `"1"`,
+> groups merge instead of wiping, and uncast columns stop being corrupted.
+> None of it is shimmed.
+
+> [!IMPORTANT]
+> A ⭐ costs you nothing and helps other developers find this package.
+> [Sponsoring](https://github.com/sponsors/gabrielesbaiz) keeps it compatible
+> with every new Nova release.
+
+## What it does
+
+Nova already addresses into a JSON column: give the model an `array` cast and
+`Text::make('Type', 'meta->type')` reads and writes it. If your shape is fixed
+and small, use that — two fields, no package. This exists for the cases it does
+not cover:
+
+- **A group you can move, hide or make readonly as a unit** — `->hideFromIndex()` once instead of on nine fields, and no chance of the ninth being forgotten.
+- **Keys the user creates.** Nova's `KeyValue` stores every value as a string and renders *nothing at all* for a value that is an object or an array. If your JSON nests, that field cannot show it.
+- **Rows in a JSON column.** Nova's `Repeater` owns the whole column, so it cannot share one with other keys, and it has no minimum or maximum.
+- **Merging, defaults, pruning and encryption**, on a column with or without a cast, instead of writing that by hand.
+- **Two fields in one package.** `Json` composes fields you already use and ships no assets; `JsonEditor` is a real field with four editor modes and repeatable rows.
+
+The trade: `Json` is not a Nova `Field` but a *composer* — it rewrites each
+child's attribute, hijacks its fill callback and dissolves into the parent field
+list, so Nova renders the children and a handful of APIs that demand a `Field`
+will not accept a group. `JsonEditor` *is* a real field, and costs you an 83 KB
+(gzipped) asset bundle in return.
+
+## Requirements
+
+- PHP 8.2+
+- Laravel 11 or 12
+- Laravel Nova 5 — a paid package; you need your own licence
 
 ## Installation
 
-You can install the package via composer:
-
 ```bash
 composer require gabrielesbaiz/nova-field-json
+
+php artisan vendor:publish --tag=nova-field-json-lang
 ```
 
-## Usage
+The service provider is auto-discovered and registers the `JsonEditor` assets.
+There is no config file and nothing to publish to get started; the translations
+step is optional. `Json` ships no assets at all — if you only use the composer,
+nothing is loaded into Nova's bundle.
 
-```php
-use Gabrielesbaiz\NovaFieldJson\NovaFieldJson; 
+**[Full installation guide →](https://gabrielesbaiz.github.io/nova-field-json/#/install)**
 
-  NovaFieldJson::make("ColumnName", [ 
-      Select::make(__("Discount Type"), "type")
-          ->options([
-              'percent' => __('Percent'),
-              'amount' => __('Amount'),
-          ])->rules('required')->default('percent'),
-      Number::make(__("Discount Value"), "value")
-          ->rules("min:0")
-          ->withMeta([
-              'min' => 0
-          ]),   
-  ]),
-```
+## Documentation
 
-### Nested Usage 
-Storing nested data is very like straight data. just like the following; use the `Json` nested.
-
-```php
-use Gabrielesbaiz\NovaFieldJson\NovaFieldJson; 
-
-  NovaFieldJson::make("ColumnName", [ 
-      Select::make(__("Discount Type"), "type")
-          ->options([
-              'percent' => __('Percent'),
-              'amount' => __('Amount'),
-          ])->rules('required')->default('percent'),
-      Number::make(__("Discount Value"), "value")
-          ->rules("min:0")
-          ->withMeta([
-              'min' => 0
-          ]),   
-      // nested data
-      NovaFieldJson::make("discount", [ 
-        Select::make(__("Discount Type"), "type")
-            ->options([
-                'percent' => __('Percent'),
-                'amount' => __('Amount'),
-            ])->rules('required')->default('percent'),
-        Number::make(__("Discount Value"), "value")
-            ->rules("min:0")
-            ->withMeta([
-                'min' => 0
-            ]),   
-      ]),
-  ]),
-
-```
-
-### Action Usage 
-It is possible to use the `Json` in the `Action` like follow:
-
-```php
-use Gabrielesbaiz\NovaFieldJson\NovaFieldJson; 
-
-class UpdateTime extends Action
-{
-    use InteractsWithQueue, Queueable, SerializesModels; 
-
-
-    /**
-     * Perform the action on the given models.
-     *
-     * @param  \Laravel\Nova\Fields\ActionFields  $fields
-     * @param  \Illuminate\Support\Collection  $models
-     * @return mixed
-     */
-    public function handle(ActionFields $fields, Collection $models)
-    {
-      //
-    }
-
-    /**
-     * Get the fields available on the action.
-     *
-     * @return array
-     */
-    public function fields()
-    {
-        return collect([
-            /// some fields
-            
-            NovaFieldJson::make(mb_strtolower($meal), [
-                Text::make(__("From"), 'from')->rules('required'),
-                Text::make(__("Until"), 'until')->rules('required'),  
-                NovaFieldJson::make(mb_strtolower($meal), [
-                    Text::make(__("From"), 'from'),
-                    Text::make(__("Until"), 'until'),  
-                ]),
-            ]),
-
-            /// some fields
-        ])->map(function($field) {
-            return $field instanceof NovaFieldJson ? $field->fields() : [$field];
-        })->flatten()->all();
-    }
-}
-```
-
-### Showing And Hiding Fields
-you can use the field `show/hide` methods on the JSON field. so this method will be called on each field under the `Json` field.The following example will hide all fields from the `index` view.
-
-```php
-use Gabrielesbaiz\NovaFieldJson\NovaFieldJson; 
-
-  NovaFieldJson::make("ColumnName", [ 
-       // fields
-  ])->hideFromIndex(),
-
-``` 
-
-### Save Last Values 
-By default; we clean the last data for store new data. but, it's possible to save the last data. for this, call the `saveHistory`  method on parent `Json` class. this causes us to overwrite the new data without clean the last data. see the follow:
-
-```php
-use Gabrielesbaiz\NovaFieldJson\NovaFieldJson; 
-  
-  NovaFieldJson::make("ColumnName", [ 
-       // fields
-  ])->saveHistory(),
-
-``` 
-
-### Separated Data
-If you want store fields in one column but show in a separate place; you should make multiple `Json` field by one name.see the following:
-
-```php
-use Gabrielesbaiz\NovaFieldJson\NovaFieldJson; 
-
-  NovaFieldJson::make("ColumnName", [ 
-       // fields group 1
-  ]),
-
-  // other fields
-
-  NovaFieldJson::make("ColumnName", [ 
-       // fields group 2
-  ])->saveHistory(),
-
-``` 
-
-* ATTENTION: at this situation, you should use `saveHistory` for next `Json` field. 
-
-### Fill The Value
-if you want to store the customized value of the field; you can use the `fillUsing` 
-method and return custom value. see the follow:
-
-* `fillUsing` accept three argumnets `$request`, `$attribute`, `$requestAttribute`.
-
-```php
-use Gabrielesbaiz\NovaFieldJson\NovaFieldJson; 
-  
-  NovaFieldJson::make("ColumnName", [ 
-       Number::make(__("Discount Value"), "value")
-            ->rules("min:0")
-            ->withMeta([
-                'min' => 0
-            ])->fillUsing(function($request, $attribute, $requestAttribute) {
-                if($request->exists($requestAttribute)) { 
-                    return $request[$requestAttribute];
-                }
-
-                return 1000;
-            }), 
-  ]),
-  
-```
-
-### Null Values
-If there need to store some values as the `null`; you can use the `nullable` method that works like the Nova nullable. 
-By default; nullable has the `true` value which means all values will be stored. But; It's possible to reject the storing of null values via passing the `false` value into the `nullable` method.
-
-### Auto Casting
-If not defined JSON casting for the field attribute; we will convert the field Value into JSON.
-if you need disable this feature; use the `ignoreCasting` method;
+| | |
+|---|---|
+| [Documentation site](https://gabrielesbaiz.github.io/nova-field-json/) | Everything: install, compose, edit, store. |
+| [Json](https://gabrielesbaiz.github.io/nova-field-json/#/json) | Composing, nesting, sharing a column, forwarding, dependent fields, actions. |
+| [JsonEditor](https://gabrielesbaiz.github.io/nova-field-json/#/editor) | Tree, key/value, raw and repeatable modes, plus the keyboard map. |
+| [Storage options](https://gabrielesbaiz.github.io/nova-field-json/#/storage) | Casting, encryption, encoding flags, defaults, pruning, validation. |
+| [All methods](https://gabrielesbaiz.github.io/nova-field-json/#/api) | Both fields, the shared storage options and the three enums. |
+| [Recipes](https://gabrielesbaiz.github.io/nova-field-json/#/recipes) | Seven worked patterns, from tabbed settings to bulk updates from an action. |
+| [Troubleshooting](https://gabrielesbaiz.github.io/nova-field-json/#/troubleshooting) | The nine things that actually go wrong. |
+| [UPGRADING.md](UPGRADING.md) | 2.0 is a clean break. Read it before you deploy. |
+| [CHANGELOG.md](CHANGELOG.md) | What changed, and when. |
 
 ## Testing
 
 ```bash
-composer test
+composer test      # pest — 93 tests
+composer analyse   # phpstan level 6
+composer format    # pint
+npm run test       # vitest — 78 tests
+npm run prod       # rebuild dist/
 ```
 
-## Changelog
+The PHP suite covers each 1.x defect as a named regression: uncast column
+corruption, the action-loop clearing flag, the `Fluent` cast probe, and child
+fields being denied their own fill pipeline. The JS suite covers the two
+contracts most likely to break silently on a Nova upgrade — the `fill()` payload
+shape and the nested validation key.
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+CI runs the PHP matrix (PHP 8.2–8.4 × Laravel 11–12 × lowest/stable), PHPStan,
+Pint, and an assets job that fails if `dist/` is out of date.
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+Thank you for considering contributing. The guide is in
+[CONTRIBUTING.md](CONTRIBUTING.md). Nova is a paid package, so CI needs
+`NOVA_USERNAME` and `NOVA_LICENSE_KEY` secrets and cannot run on pull requests
+from forks — the guide explains what to run locally instead.
 
-## Security Vulnerabilities
+## Security vulnerabilities
 
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+Values are never interpolated into SQL, each child field runs its own fill
+pipeline, malformed JSON is a validation error rather than a 500, and the editor
+renders values as text with no `v-html` anywhere. What this package does **not**
+do is authorise anything — the
+[security page](https://gabrielesbaiz.github.io/nova-field-json/#/security) has
+the full list of properties.
+
+Please review [our security policy](../../security/policy) for reporting a
+vulnerability. Please do not open a public issue.
 
 ## Credits
 
-- [Armin Group](https://github.com/armincms)
-- [Gabriele Sbaiz](https://github.com/gabrielesbaiz)
-- [All Contributors](../../contributors)
+Written and maintained by [Gabriele Sbaiz](https://github.com/gabrielesbaiz),
+with thanks to [everyone who has contributed](../../contributors).
+
+## Support this package
+
+I maintain this on evenings and weekends, alongside a full-time job writing
+insurance software. Keeping it green across new Nova majors is the unglamorous
+part, and it is what keeps this installable in your `composer.json` next year
+too.
+
+If it is useful to you:
+
+- ⭐ **Star the repo.** Free, thirty seconds, and it is the first signal other developers look at.
+- ❤️ **[Become a sponsor](https://github.com/sponsors/gabrielesbaiz).** From $5 a month. Company tiers get your logo right here in this README.
+- 🐛 **Open a good issue.** A clear reproduction is worth more than you think.
+- 🗣️ **Tell another Laravel developer.** Word of mouth is how packages survive.
+
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-gabrielesbaiz-ff69b4?style=for-the-badge&logo=github-sponsors)](https://github.com/sponsors/gabrielesbaiz)
+
+## Disclaimer
+
+This package is provided as is. It writes to your database columns, and 2.0
+deliberately changes what some of those writes contain — reading
+[UPGRADING.md](UPGRADING.md) and backing up affected columns before deploying is
+the deploying application's responsibility, not this package's.
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+MIT. See [LICENSE.md](LICENSE.md). The MIT licence's warranty disclaimer and
+limitation of liability apply in full, alongside the section above.
