@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="art/nova-field-json-logo.png" alt="NovaField Json" width="600">
+</p>
+
 # NovaField Json
 
 Structured data in a JSON column for Laravel Nova — compose ordinary Nova fields into one column, or hand the whole column to the user as a tree, key/value, raw or repeatable-row editor.
