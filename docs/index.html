@@ -6,7 +6,9 @@
 <meta property="og:description" content="Two ways to put structured data in a JSON column in Laravel Nova: compose ordinary fields into one column, or hand the column to the user.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gabrielesbaiz.github.io/nova-field-json/">
+<meta property="og:image" content="https://gabrielesbaiz.github.io/nova-field-json/art/nova-field-json-logo.png">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gabrielesbaiz.github.io/nova-field-json/art/nova-field-json-logo.png">
 <meta name="twitter:title" content="NovaField Json">
 <meta name="twitter:description" content="Composable JSON fields and a JSON editor field for Laravel Nova.">
 <link rel="canonical" href="https://gabrielesbaiz.github.io/nova-field-json/">
@@ -107,6 +109,7 @@ a{color:var(--accent-text)}
 .hero .grid{display:grid;gap:clamp(1.8rem,4vw,3rem);grid-template-columns:1fr}
 @media(min-width:980px){.hero .grid{grid-template-columns:1.02fr .98fr;align-items:center}}
 .hero h1{font-size:clamp(2.5rem,7vw,4.3rem);font-weight:800;line-height:1;margin-top:1rem}
+.hero .mark{display:block;width:min(30rem,78vw);height:auto;margin:0 0 1.4rem}
 .hero .lede{max-width:38rem;margin-top:1.1rem;font-size:1.04rem}
 .hero .lede b{color:var(--ink);font-weight:700}
 .hero .cta{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1.7rem}
@@ -301,6 +304,8 @@ a{color:var(--accent-text)}
 <section class="hero">
   <div class="mx grid">
     <div>
+      <img class="mark" src="art/nova-field-json-logo.png"
+           alt="NovaField Json" width="2172" height="724">
       <p class="eyebrow">Laravel Nova field &middot; 2.0.0</p>
       <h1>Structured data,<br>one JSON column.</h1>
       <p class="lede">
