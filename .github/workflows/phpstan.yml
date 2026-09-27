@@ -1,0 +1,30 @@
+name: phpstan
+
+on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  phpstan:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+
+    runs-on: ubuntu-latest
+
+    env:
+      COMPOSER_AUTH: '{"http-basic":{"nova.laravel.com":{"username":"${{ secrets.NOVA_USERNAME }}","password":"${{ secrets.NOVA_LICENSE_KEY }}"}}}'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - run: composer update --prefer-dist --no-interaction --no-progress
+
+      - run: vendor/bin/phpstan analyse --no-progress --error-format=github

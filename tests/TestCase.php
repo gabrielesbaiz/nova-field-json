@@ -1,37 +1,57 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Gabrielesbaiz\NovaFieldJson\Tests;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Gabrielesbaiz\NovaFieldJson\FieldServiceProvider;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Laravel\Nova\NovaCoreServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Gabrielesbaiz\NovaFieldJson\NovaFieldJsonServiceProvider;
 
-class TestCase extends Orchestra
+abstract class TestCase extends Orchestra
 {
     protected function setUp(): void
     {
         parent::setUp();
 
-        Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Gabrielesbaiz\\NovaFieldJson\\Database\\Factories\\'.class_basename($modelName).'Factory'
-        );
+        $this->createProductsTable();
     }
 
-    protected function getPackageProviders($app)
+    /**
+     * @return array<int, class-string>
+     */
+    protected function getPackageProviders($app): array
     {
         return [
-            NovaFieldJsonServiceProvider::class,
+            NovaCoreServiceProvider::class,
+            FieldServiceProvider::class,
         ];
     }
 
-    public function getEnvironmentSetUp($app)
+    protected function defineEnvironment($app): void
     {
-        config()->set('database.default', 'testing');
+        $app['config']->set('database.default', 'testing');
+        $app['config']->set('database.connections.testing', [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => '',
+        ]);
+        $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+    }
 
-        /*
-         foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__ . '/database/migrations') as $migration) {
-            (include $migration->getRealPath())->up();
-         }
-         */
+    protected function createProductsTable(): void
+    {
+        Schema::dropIfExists('products');
+
+        Schema::create('products', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name')->nullable();
+            $table->text('meta')->nullable();
+            $table->text('settings')->nullable();
+            $table->text('vault')->nullable();
+            $table->timestamps();
+        });
     }
 }

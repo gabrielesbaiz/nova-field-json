@@ -1,0 +1,1890 @@
+<title>NovaField Json Docs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Composable JSON fields and a JSON editor field for Laravel Nova. Json::make() composes ordinary Nova fields into one column; JsonEditor::make() gives the user a tree, key/value, raw or repeatable-row editor.">
+<meta property="og:title" content="NovaField Json">
+<meta property="og:description" content="Two ways to put structured data in a JSON column in Laravel Nova: compose ordinary fields into one column, or hand the column to the user.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gabrielesbaiz.github.io/nova-field-json/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="NovaField Json">
+<meta name="twitter:description" content="Composable JSON fields and a JSON editor field for Laravel Nova.">
+<link rel="canonical" href="https://gabrielesbaiz.github.io/nova-field-json/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+
+<style>
+/* ============================================================
+   NOVA PANEL — the chosen direction. Nine tokens, both themes.
+   ============================================================ */
+:root{
+  --paper:#f6f8fb; --ink:#0f172a; --sub:#475569; --muted:#5d7188;
+  --rule:#dfe6ef; --wash:#ffffff;
+  --accent:#0ea5e9; --accent-text:#0b6f9e; --accent-ink:#04121d;
+  --display:"Figtree",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --shadow:0 1px 2px rgb(15 23 42/.05),0 14px 34px -22px rgb(15 23 42/.45);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0b1120; --ink:#e6edf7; --sub:#a3b2c7; --muted:#78889e;
+    --rule:#1d2940; --wash:#131c2e;
+    --accent:#38bdf8; --accent-text:#63cbfa; --accent-ink:#04121d;
+    --shadow:0 1px 2px rgb(0 0 0/.4),0 14px 34px -22px rgb(0 0 0/.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0b1120; --ink:#e6edf7; --sub:#a3b2c7; --muted:#78889e;
+  --rule:#1d2940; --wash:#131c2e;
+  --accent:#38bdf8; --accent-text:#63cbfa; --accent-ink:#04121d;
+  --shadow:0 1px 2px rgb(0 0 0/.4),0 14px 34px -22px rgb(0 0 0/.8);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--display);font-size:16px;-webkit-font-smoothing:antialiased;padding-top:3.5rem}
+:focus-visible{outline:2px solid var(--accent-text);outline-offset:3px}
+svg{max-width:100%}
+
+.mx{max-width:94rem;margin:0 auto;padding-inline:clamp(1.1rem,4vw,2.4rem)}
+.eyebrow{font-family:var(--mono);font-size:.7rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-text);margin:0;display:flex;align-items:center;gap:.7rem}
+.eyebrow::before{content:"";width:1.6rem;height:1px;background:var(--accent-text);flex:none}
+.num{font-variant-numeric:tabular-nums}
+.hidden{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.025em;text-wrap:balance;margin:0}
+p{line-height:1.72;color:var(--sub);margin:0}
+code{font-family:var(--mono);font-size:.86em}
+p code,li code,td code,.body code:not(pre code){background:color-mix(in srgb,var(--accent) 9%,transparent);border:1px solid color-mix(in srgb,var(--accent-text) 22%,transparent);border-radius:.25rem;padding:.06em .32em;color:var(--accent-text)}
+a{color:var(--accent-text)}
+
+.btn{display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;font-weight:700;font-size:.88rem;padding:.75rem 1.2rem;border-radius:.45rem;background:var(--ink);color:var(--paper);border:1px solid var(--ink);transition:background .16s,border-color .16s,color .16s}
+.btn:hover{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:transparent;border-color:var(--accent-text);color:var(--accent-text)}
+
+/* ---- masthead ---- */
+.top{position:fixed;inset:0 0 auto 0;z-index:60;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--rule)}
+.top .in{display:flex;align-items:center;gap:.85rem;height:3.5rem}
+.brand{display:inline-flex;align-items:baseline;gap:.5rem;font-weight:800;letter-spacing:-.03em;font-size:1.02rem;text-decoration:none;white-space:nowrap;color:var(--ink)}
+.brand em{font-style:normal;color:var(--accent-text)}
+.ver{font-family:var(--mono);font-size:.63rem;font-weight:500;color:var(--accent-text);background:color-mix(in srgb,var(--accent) 13%,transparent);border:1px solid color-mix(in srgb,var(--accent-text) 36%,transparent);padding:.1rem .42rem;border-radius:999px}
+.top nav{display:none;align-items:center;gap:.1rem;margin-left:auto;font-size:.84rem}
+@media(min-width:1140px){.top nav{display:flex}}
+.top nav a{text-decoration:none;color:var(--sub);padding:.34rem .6rem;border-radius:.4rem;border:1px solid transparent}
+.top nav a:hover{color:var(--ink)}
+.top nav a[aria-current="page"]{color:var(--accent-text);border-color:color-mix(in srgb,var(--accent-text) 48%,transparent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.top nav a.sponsor{color:var(--accent-text);font-weight:700}
+.tools{display:flex;align-items:center;gap:.45rem;margin-left:auto}
+@media(min-width:1140px){.tools{margin-left:.6rem}}
+.search{display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;font:inherit;font-family:var(--mono);font-size:.74rem;color:var(--muted);background:var(--wash);border:1px solid var(--rule);border-radius:999px;padding:.3rem .55rem .3rem .7rem}
+.search:hover{color:var(--ink);border-color:var(--muted)}
+.search svg{width:.78rem;height:.78rem;fill:none;stroke:currentColor;stroke-width:1.9}
+.search kbd{font-family:var(--mono);font-size:.6rem;border:1px solid var(--rule);border-radius:.25rem;padding:.06rem .3rem}
+.mode{font:inherit;font-size:.78rem;font-weight:700;cursor:pointer;background:var(--ink);color:var(--paper);border:1px solid var(--ink);padding:.34rem .74rem;border-radius:.4rem}
+.mode:hover{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.menu{display:inline-flex;font:inherit;font-size:.78rem;font-weight:700;cursor:pointer;background:transparent;color:var(--ink);border:1px solid var(--rule);padding:.34rem .7rem;border-radius:.4rem}
+@media(min-width:1000px){.menu{display:none}}
+.progress{position:absolute;left:0;bottom:-1px;height:2px;width:0;background:var(--accent-text)}
+
+/* ---- command palette ---- */
+.pal[hidden]{display:none}
+.pal{position:fixed;inset:0;z-index:90;display:grid;place-items:start center;padding-top:clamp(3rem,12vh,8rem);background:color-mix(in srgb,var(--ink) 42%,transparent);backdrop-filter:blur(3px)}
+.pal .box{width:min(34rem,92vw);background:var(--paper);border:1px solid var(--rule);border-radius:.6rem;overflow:hidden;box-shadow:0 30px 70px -30px rgba(0,0,0,.55)}
+.pal input{width:100%;border:0;border-bottom:1px solid var(--rule);background:transparent;color:var(--ink);font:inherit;font-size:.98rem;padding:.95rem 1.1rem;outline:none}
+.pal ul{list-style:none;margin:0;padding:.4rem;max-height:52vh;overflow-y:auto}
+.pal li{display:flex;align-items:baseline;gap:.7rem;padding:.55rem .7rem;cursor:pointer;font-size:.88rem;color:var(--sub);border-radius:.35rem}
+.pal li b{font-weight:600;color:var(--ink)}
+.pal li em{font-style:normal;margin-left:auto;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.pal li[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 11%,transparent)}
+.pal li[aria-selected="true"] b{color:var(--accent-text)}
+.pal .empty{padding:1rem 1.1rem;font-size:.88rem;color:var(--muted)}
+
+/* ---- landing ---- */
+.hero{border-bottom:1px solid var(--rule);padding-block:clamp(2.6rem,6vw,4.4rem)}
+.hero .grid{display:grid;gap:clamp(1.8rem,4vw,3rem);grid-template-columns:1fr}
+@media(min-width:980px){.hero .grid{grid-template-columns:1.02fr .98fr;align-items:center}}
+.hero h1{font-size:clamp(2.5rem,7vw,4.3rem);font-weight:800;line-height:1;margin-top:1rem}
+.hero .lede{max-width:38rem;margin-top:1.1rem;font-size:1.04rem}
+.hero .lede b{color:var(--ink);font-weight:700}
+.hero .cta{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1.7rem}
+.hero .meta{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1.5rem}
+.chip{font-family:var(--mono);font-size:.64rem;letter-spacing:.09em;text-transform:uppercase;color:var(--sub);border:1px solid var(--rule);padding:.24rem .54rem;border-radius:999px}
+.chip b{color:var(--accent-text)}
+
+/* the Nova panel mock — the hero of this direction */
+.pcard{background:var(--wash);border:1px solid var(--rule);border-radius:.6rem;box-shadow:var(--shadow);overflow:hidden}
+.pcard .ph{display:flex;align-items:center;gap:.55rem;padding:.7rem .95rem;border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.pcard .ph b{color:var(--ink);font-weight:700;letter-spacing:.05em}
+.pcard .rows{padding:.35rem 0}
+.prow{display:flex;align-items:center;gap:.5rem;padding:.3rem .95rem;font-family:var(--mono);font-size:.78rem}
+.prow:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.tw{width:1.1rem;height:1.1rem;flex:none;border:0;background:transparent;color:var(--muted);cursor:pointer;font:inherit;font-size:.7rem;line-height:1;display:grid;place-items:center;border-radius:.2rem}
+.tw:hover{color:var(--accent-text)}
+.kx{color:var(--sub);min-width:5.5rem}
+.val{color:var(--ink);font-weight:500}
+.badge{font-family:var(--mono);font-size:.58rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.1rem .38rem;border-radius:.25rem}
+.pcard .pf{padding:.5rem .95rem .75rem;border-top:1px solid var(--rule);font-family:var(--mono);font-size:.68rem;color:var(--accent-text)}
+.t-string{color:#047857;background:#d1fae5}.t-number{color:#075985;background:#e0f2fe}
+.t-boolean{color:#5b21b6;background:#ede9fe}.t-object{color:#92400e;background:#fef3c7}
+.t-array{color:#9f1239;background:#ffe4e6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .t-string{color:#6ee7b7;background:#064e3b66}
+:root:not([data-theme="light"]) .t-number{color:#7dd3fc;background:#0c4a6e66}
+:root:not([data-theme="light"]) .t-boolean{color:#c4b5fd;background:#4c1d9566}
+:root:not([data-theme="light"]) .t-object{color:#fcd34d;background:#78350f66}
+:root:not([data-theme="light"]) .t-array{color:#fda4af;background:#88103766}}
+:root[data-theme="dark"] .t-string{color:#6ee7b7;background:#064e3b66}
+:root[data-theme="dark"] .t-number{color:#7dd3fc;background:#0c4a6e66}
+:root[data-theme="dark"] .t-boolean{color:#c4b5fd;background:#4c1d9566}
+:root[data-theme="dark"] .t-object{color:#fcd34d;background:#78350f66}
+:root[data-theme="dark"] .t-array{color:#fda4af;background:#88103766}
+
+.band{border-bottom:1px solid var(--rule);padding-block:clamp(2.6rem,6vw,4.2rem)}
+.band h2{font-size:clamp(1.7rem,4vw,2.5rem);font-weight:800;line-height:1.06;margin-top:.9rem;max-width:22ch}
+.band .lede{max-width:40rem;margin-top:.9rem}
+.split{display:grid;gap:clamp(1.3rem,3vw,2.2rem);grid-template-columns:1fr;margin-top:1.8rem}
+@media(min-width:920px){.split{grid-template-columns:1fr 1fr;align-items:start}}
+
+/* ---- code ---- */
+.code,.out{border:1px solid var(--rule);border-radius:.5rem;overflow:hidden;background:var(--wash)}
+.out{background:var(--paper)}
+.code .cap,.out .cap{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.45rem .8rem;border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+.code .cap b,.out .cap b{color:var(--accent-text);font-weight:700}
+.code pre,.out pre{margin:0;padding:.9rem 1rem;overflow-x:auto}
+.code code,.out code{font-family:var(--mono);font-size:.78rem;line-height:1.72;color:var(--ink);white-space:pre;background:none;border:0;padding:0}
+.c-k{color:var(--accent-text);font-weight:600}
+.c-s{color:var(--sub)}
+.c-c{color:var(--muted);font-style:italic}
+.c-f{color:var(--ink);font-weight:700}
+
+.cards{display:grid;gap:1rem;grid-template-columns:1fr;margin-top:1.8rem}
+@media(min-width:820px){.cards{grid-template-columns:1fr 1fr}}
+.card{border:1px solid var(--rule);background:var(--wash);border-radius:.5rem;padding:1.2rem 1.3rem 1.4rem}
+.card h3{font-size:1.08rem;font-weight:700;margin:.55rem 0 .5rem}
+.card .kind{font-family:var(--mono);font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+.card ul{margin:.8rem 0 0;padding-left:1.05rem;font-size:.88rem;line-height:1.66;color:var(--sub);display:grid;gap:.25rem}
+
+.note{margin-top:1.4rem;border-left:3px solid var(--accent-text);background:var(--wash);border-radius:0 .4rem .4rem 0;padding:.95rem 1.15rem;font-size:.92rem;line-height:1.72;color:var(--sub);max-width:44rem}
+.note b{color:var(--ink)}
+.note.warn{border-left-color:#d4383d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .note.warn{border-left-color:#ff7b82}}
+:root[data-theme="dark"] .note.warn{border-left-color:#ff7b82}
+
+.tbl{margin-top:1.4rem;border:1px solid var(--rule);border-radius:.5rem;overflow-x:auto;background:var(--wash)}
+.tbl table{width:100%;border-collapse:collapse;min-width:36rem;font-size:.86rem}
+.tbl th{text-align:left;font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:.6rem .85rem;border-bottom:1px solid var(--rule);white-space:nowrap}
+.tbl td{padding:.6rem .85rem;border-bottom:1px solid color-mix(in srgb,var(--rule) 55%,transparent);color:var(--sub);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td:first-child{color:var(--ink)}
+.tag{font-family:var(--mono);font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.14rem .4rem;border-radius:.25rem;white-space:nowrap;color:var(--accent-ink);background:var(--accent)}
+
+/* ---- docs layout ---- */
+.docs{display:grid;gap:clamp(1.6rem,3.2vw,2.8rem);grid-template-columns:1fr;padding-block:clamp(1.8rem,4vw,2.8rem)}
+@media(min-width:1000px){.docs{grid-template-columns:14.5rem minmax(0,1fr)}}
+@media(min-width:1320px){.docs{grid-template-columns:15rem minmax(0,1fr) 14rem}}
+.sidenav,.onthispage{display:none}
+@media(min-width:1000px){.sidenav{display:block;position:sticky;top:5rem;align-self:start;max-height:calc(100vh - 6.5rem);overflow-y:auto}}
+@media(min-width:1320px){.onthispage{display:block;position:sticky;top:5rem;align-self:start;max-height:calc(100vh - 6.5rem);overflow-y:auto}}
+.sidenav.open{display:block;position:static;max-height:none;margin-bottom:1rem;border:1px solid var(--rule);border-radius:.5rem;padding:1rem;background:var(--wash)}
+.sidenav h4,.onthispage h4{font-family:var(--mono);font-size:.64rem;font-weight:500;letter-spacing:.17em;text-transform:uppercase;color:var(--muted);margin:0 0 .7rem}
+.sidenav .group+.group{margin-top:1.45rem}
+.sidenav ul{list-style:none;margin:0;padding:0;display:grid;gap:.1rem}
+.sidenav a{display:block;text-decoration:none;color:var(--sub);font-size:.88rem;padding:.3rem .6rem;border-left:2px solid var(--rule)}
+.sidenav a:hover{color:var(--ink)}
+.sidenav a[aria-current="page"]{color:var(--accent-text);border-left-color:var(--accent-text);font-weight:600;background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.onthispage ol{list-style:none;margin:0;padding:0;display:grid;gap:.1rem;counter-reset:toc}
+.onthispage a{display:flex;gap:.6rem;text-decoration:none;color:var(--sub);font-size:.83rem;padding:.28rem .5rem;border-left:2px solid var(--rule)}
+.onthispage a::before{counter-increment:toc;content:counter(toc,decimal-leading-zero);font-family:var(--mono);font-size:.64rem;color:var(--muted)}
+.onthispage a:hover{color:var(--ink)}
+.onthispage a[aria-current="true"]{color:var(--accent-text);border-left-color:var(--accent-text);font-weight:600}
+.onthispage a[aria-current="true"]::before{color:var(--accent-text)}
+
+.body{min-width:0}
+.body h1{font-size:clamp(1.8rem,3.6vw,2.15rem);font-weight:800}
+.body .sub{margin-top:.55rem;font-size:1rem;max-width:42rem}
+.body section{padding-block:clamp(1.6rem,3.2vw,2.3rem);border-top:1px solid var(--rule);margin-top:0}
+.body section:first-of-type{border-top:0}
+.body h2{font-size:clamp(1.25rem,2.6vw,1.6rem);font-weight:700;scroll-margin-top:5rem}
+.body h3{font-size:1.02rem;font-weight:700;margin-top:1.5rem}
+.body p{margin-top:.85rem;max-width:44rem;font-size:.97rem}
+.body ul,.body ol{margin:.9rem 0 0;padding-left:1.15rem;max-width:44rem;color:var(--sub);font-size:.95rem;line-height:1.7;display:grid;gap:.3rem}
+.body .code,.body .out,.body .tbl,.body .note{margin-top:1.2rem}
+.body .split{margin-top:1.2rem}
+.pager{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-top:1px solid var(--rule);margin-top:2.2rem;padding-top:1.3rem}
+.pager a{text-decoration:none;font-size:.86rem;color:var(--muted);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.pager a b{display:block;font-family:var(--display);font-size:1.02rem;font-weight:700;letter-spacing:-.02em;color:var(--ink);margin-top:.25rem;text-transform:none}
+.pager a:hover b{color:var(--accent-text)}
+.pager .next{text-align:right;margin-left:auto}
+
+/* ---- sponsor band ---- */
+.support{border-bottom:1px solid var(--rule);padding-block:clamp(3.2rem,7vw,5rem)}
+.support h2{font-size:clamp(1.9rem,5vw,3.1rem);font-weight:800;line-height:1.04;margin-top:.9rem;max-width:16ch}
+.support h2 em{font-style:normal;color:var(--accent-ink);background:var(--accent);padding:0 .12em;border-radius:.15rem;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.support .top-grid{display:grid;gap:clamp(2rem,5vw,3.2rem);grid-template-columns:1fr;margin-top:1.4rem}
+@media(min-width:940px){.support .top-grid{grid-template-columns:1.15fr .85fr;align-items:start}}
+.support .top-grid p{max-width:34rem;margin-top:1.1rem}
+.sponsor-card{border:1px solid var(--rule);background:var(--wash);border-radius:.55rem;padding:1.6rem;box-shadow:var(--shadow)}
+.sponsor-card .price{font-size:clamp(2.6rem,6vw,3.4rem);font-weight:800;letter-spacing:-.04em;color:var(--accent-text);line-height:1}
+.sponsor-card .terms{font-family:var(--mono);font-size:.64rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin:.7rem 0 1.3rem}
+.sponsor-card .btn{width:100%;justify-content:center}
+.sponsor-card .fine{font-size:.78rem;color:var(--muted);margin-top:.9rem;text-align:center;line-height:1.6}
+.ways{display:grid;grid-template-columns:1fr;margin-top:2.6rem;border-top:1px solid var(--rule)}
+@media(min-width:720px){.ways{grid-template-columns:1fr 1fr}}
+@media(min-width:1040px){.ways{grid-template-columns:repeat(4,1fr)}}
+.ways .w{padding:1.4rem 1.3rem 1.6rem;border-bottom:1px solid var(--rule);position:relative}
+@media(min-width:1040px){.ways .w{border-right:1px solid var(--rule)}.ways .w:last-child{border-right:0}}
+.ways .ftag{position:absolute;top:1.4rem;right:1.3rem;font-family:var(--mono);font-size:.56rem;letter-spacing:.15em;color:var(--accent-text);border:1px solid color-mix(in srgb,var(--accent-text) 42%,transparent);padding:.1rem .4rem;border-radius:999px}
+.ways h3{font-size:1rem;font-weight:700;margin:.75rem 0 .45rem}
+.ways p{font-size:.86rem;line-height:1.62}
+.why{margin-top:2.2rem;border-left:3px solid var(--accent-text);background:var(--wash);border-radius:0 .4rem .4rem 0;padding:1.1rem 1.3rem;font-size:.92rem;line-height:1.72;color:var(--sub)}
+.why b{color:var(--ink)}
+
+/* ---- footer ---- */
+.sitefoot{background:var(--wash);padding-block:clamp(2.6rem,5vw,3.4rem);border-top:1px solid var(--rule)}
+.sitefoot .cols{display:grid;gap:2rem;grid-template-columns:repeat(2,1fr)}
+@media(min-width:880px){.sitefoot .cols{grid-template-columns:repeat(4,1fr)}}
+.sitefoot h4{font-family:var(--mono);font-size:.62rem;font-weight:500;letter-spacing:.17em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+.sitefoot ul{list-style:none;margin:0;padding:0;display:grid;gap:.6rem}
+.sitefoot a{text-decoration:none;color:var(--sub);font-size:.88rem}
+.sitefoot a:hover{color:var(--accent-text)}
+.sitefoot .base{display:flex;justify-content:space-between;gap:1.2rem;flex-wrap:wrap;border-top:1px solid var(--rule);margin-top:2.3rem;padding-top:1.3rem;font-family:var(--mono);font-size:.73rem;color:var(--muted)}
+
+.reveal{transition:opacity .55s ease,transform .55s cubic-bezier(.2,.8,.2,1)}
+:root.js .reveal{opacity:0;transform:translateY(12px)}
+:root.js .reveal.seen{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  :root.js .reveal{opacity:1;transform:none}
+}
+</style>
+
+<header class="top">
+  <div class="mx in">
+    <a class="brand" href="#/home">NovaField <em>Json</em> <span class="ver">2.0.0</span></a>
+    <nav id="nav">
+      <a href="#/intro">Introduction</a>
+      <a href="#/install">Install</a>
+      <a href="#/json">Json</a>
+      <a href="#/editor">JsonEditor</a>
+      <a href="#/api">Reference</a>
+      <a href="#/upgrade">Upgrading</a>
+      <a class="sponsor" href="#/sponsor">&#9829; Sponsor</a>
+    </nav>
+    <div class="tools">
+      <button class="menu" id="menuBtn" aria-expanded="false">Menu</button>
+      <button class="search" id="openPal" aria-label="Search the documentation" aria-keyshortcuts="Meta+K">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4 14 14"/></svg>
+        <span>Search</span><kbd id="kbd">&#8984;K</kbd>
+      </button>
+      <button class="mode" id="mode">Dark</button>
+    </div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<div class="pal" id="pal" hidden>
+  <div class="box" role="dialog" aria-modal="true" aria-label="Search the documentation">
+    <input id="palInput" type="text" placeholder="Jump to a page or section&hellip;" autocomplete="off" spellcheck="false">
+    <ul id="palList" role="listbox"></ul>
+  </div>
+</div>
+
+<main>
+
+<!-- ==================== HOME ==================== -->
+<div class="page" id="home">
+
+<section class="hero">
+  <div class="mx grid">
+    <div>
+      <p class="eyebrow">Laravel Nova field &middot; 2.0.0</p>
+      <h1>Structured data,<br>one JSON column.</h1>
+      <p class="lede">
+        <b>Json::make()</b> merges ordinary Nova fields into a single JSON column.
+        <b>JsonEditor::make()</b> hands the whole column to the user as a tree, key/value,
+        raw or repeatable editor. Both share the same storage rules.
+      </p>
+      <div class="cta">
+        <a class="btn" href="#/install">Install</a>
+        <a class="btn ghost" href="#/intro">Read the introduction</a>
+      </div>
+      <div class="meta">
+        <span class="chip">PHP <b>8.2+</b></span>
+        <span class="chip">Laravel <b>11 &middot; 12</b></span>
+        <span class="chip">Nova <b>5</b></span>
+        <span class="chip"><b>93</b> Pest</span>
+        <span class="chip"><b>78</b> Vitest</span>
+        <span class="chip">dist <b>83 KB</b> gzip</span>
+      </div>
+    </div>
+
+    <figure class="pcard" style="margin:0">
+      <div class="ph"><b>Metadata</b><span>json-editor-field</span></div>
+      <div class="rows" id="panelRows"></div>
+      <div class="pf">+ Add key &nbsp;&middot;&nbsp; Alt + &uarr;/&darr; reorders</div>
+    </figure>
+  </div>
+</section>
+
+<section class="band reveal">
+  <div class="mx">
+    <p class="eyebrow">01 &middot; The smallest real thing</p>
+    <h2>Four lines, one column.</h2>
+    <p class="lede">Give the model a cast, then compose ordinary Nova fields into it. The user sees two normal fields; the database sees one JSON column.</p>
+    <div class="split">
+      <div class="code">
+        <div class="cap"><span>app/Nova/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-k">use</span> Gabrielesbaiz\NovaFieldJson\<span class="c-f">Json</span>;
+
+<span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Select</span>::<span class="c-k">make</span>(__(<span class="c-s">'Discount Type'</span>), <span class="c-s">'type'</span>)-&gt;<span class="c-k">options</span>([
+        <span class="c-s">'percent'</span> =&gt; __(<span class="c-s">'Percent'</span>),
+        <span class="c-s">'amount'</span>  =&gt; __(<span class="c-s">'Amount'</span>),
+    ])-&gt;<span class="c-k">rules</span>(<span class="c-s">'required'</span>),
+
+    <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Discount Value'</span>), <span class="c-s">'value'</span>)-&gt;<span class="c-k">rules</span>(<span class="c-s">'min:0'</span>),
+]),</code></pre>
+      </div>
+      <div class="out">
+        <div class="cap"><span>products.meta</span><span>result</span></div>
+<pre><code>{ <span class="c-s">"type"</span>: <span class="c-s">"percent"</span>, <span class="c-s">"value"</span>: 12 }</code></pre>
+        <div class="cap" style="border-bottom:0;border-top:1px solid var(--rule)"><span>attributes Nova posts</span></div>
+<pre><code>meta-&gt;type
+meta-&gt;value</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band reveal">
+  <div class="mx">
+    <p class="eyebrow">02 &middot; Two fields, one contract</p>
+    <h2>Compose the shape, or hand over the column.</h2>
+    <p class="lede">Which one you want depends on a single question: do the keys belong to your schema, or to your user?</p>
+    <div class="cards">
+      <div class="card">
+        <span class="kind">field composer &middot; ships no assets</span>
+        <h3>Json::make()</h3>
+        <p>Rewrites each child's attribute to <code>column-&gt;key</code>, routes its value into a shared accumulator, then dissolves into the parent field list. Nova renders the children, so nothing is added to Nova's bundle.</p>
+        <ul>
+          <li>Nesting to any depth</li>
+          <li>Several groups merge into one column</li>
+          <li>~40 methods forwarded to the children</li>
+          <li><code>-&gt;replaces()</code> <code>-&gt;defaults()</code> <code>-&gt;encrypted()</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="kind">nova field &middot; vue 3 + laravel mix</span>
+        <h3>JsonEditor::make()</h3>
+        <p>Owns the column and renders its own editor &mdash; for data whose keys the user creates. Nova's own <code>KeyValue</code> stores every value as a string and renders nothing at all when a value is an object.</p>
+        <ul>
+          <li>Tree, key/value, raw and repeatable modes</li>
+          <li>Typed rows; nested values actually render</li>
+          <li>Full keyboard tree, live region, roving tabindex</li>
+          <li>Index badge and collapsible detail viewer</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band reveal">
+  <div class="mx">
+    <p class="eyebrow">03 &middot; What 2.0 fixes</p>
+    <h2>Four of the twelve were losing data quietly.</h2>
+    <p class="lede">Nesting one group inside another is the normal case, and it is also where 1.x came apart. Every row below is pinned by a named regression test.</p>
+    <div class="split">
+      <div class="code">
+        <div class="cap"><span>nested groups</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Select</span>::<span class="c-k">make</span>(__(<span class="c-s">'Type'</span>), <span class="c-s">'type'</span>),
+
+    <span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'discount'</span>, [
+        <span class="c-f">Select</span>::<span class="c-k">make</span>(__(<span class="c-s">'Kind'</span>), <span class="c-s">'kind'</span>),
+        <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Value'</span>), <span class="c-s">'value'</span>),
+
+        <span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'limits'</span>, [
+            <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Max'</span>), <span class="c-s">'max'</span>),
+        ]),
+    ]),
+]),</code></pre>
+      </div>
+      <div class="out">
+        <div class="cap"><span>products.meta</span><span>result</span></div>
+<pre><code>{
+  <span class="c-s">"type"</span>: <span class="c-s">"seasonal"</span>,
+  <span class="c-s">"discount"</span>: {
+    <span class="c-s">"kind"</span>: <span class="c-s">"percent"</span>,
+    <span class="c-s">"value"</span>: 12,
+    <span class="c-s">"limits"</span>: { <span class="c-s">"max"</span>: 100 }
+  }
+}</code></pre>
+      </div>
+    </div>
+    <div class="tbl">
+      <table>
+        <caption class="sr">The four data defects fixed in 2.0</caption>
+        <thead><tr><th>Defect</th><th>Severity</th><th>What actually happened</th></tr></thead>
+        <tbody>
+          <tr><td>Uncast columns corrupted</td><td><span class="tag">data loss</span></td><td>The column was re-read between children, so child&nbsp;2 saw child&nbsp;1's encoded string. Any group of 2+ fields on a column without an <code>array</code> cast stored <code>[0 =&gt; '{"a":1}', 'b' =&gt; 2]</code>.</td></tr>
+          <tr><td>Actions filled model 1 only</td><td><span class="tag">data loss</span></td><td>The &ldquo;already cleared&rdquo; flag lived on the field instance and was never reset. From the second model in an action's collection onward, the column was never cleared.</td></tr>
+          <tr><td>Two groups erased each other</td><td><span class="tag">data loss</span></td><td>The first child nulled the whole column, so whichever group filled second wiped the first unless you remembered <code>-&gt;saveHistory()</code>. Merging is now the default.</td></tr>
+          <tr><td>Children's fill pipeline bypassed</td><td><span class="tag">data loss</span></td><td>Values were read straight off the request, skipping every field that overrides <code>fillAttributeFromRequest()</code>. <code>Boolean</code> stored <code>"1"</code>, and <code>File</code> never uploaded at all.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="band reveal">
+  <div class="mx">
+    <p class="eyebrow">04 &middot; Repeatable rows</p>
+    <h2>Rows in a JSON column, with per-row rules.</h2>
+    <p class="lede">Nova's own <code>Repeater</code> owns the whole column and has no minimum or maximum. This renders rows of real Nova sub-fields inside a column you can still share.</p>
+    <div class="split">
+      <div class="code">
+        <div class="cap"><span>app/Nova/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-f">JsonEditor</span>::<span class="c-k">make</span>(__(<span class="c-s">'Tiers'</span>), <span class="c-s">'tiers'</span>)
+    -&gt;<span class="c-k">repeatable</span>(<span class="c-k">fn</span> () =&gt; [
+        <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>)-&gt;<span class="c-k">rules</span>(<span class="c-s">'required'</span>),
+        <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Price'</span>), <span class="c-s">'price'</span>)-&gt;<span class="c-k">rules</span>(<span class="c-s">'numeric'</span>, <span class="c-s">'min:0'</span>),
+    ])
+    -&gt;<span class="c-k">min</span>(1)
+    -&gt;<span class="c-k">max</span>(10)
+    -&gt;<span class="c-k">sortable</span>(),</code></pre>
+      </div>
+      <div class="out">
+        <div class="cap"><span>products.tiers</span><span>result</span></div>
+<pre><code>[
+  { <span class="c-s">"label"</span>: <span class="c-s">"Small"</span>, <span class="c-s">"price"</span>: 10 },
+  { <span class="c-s">"label"</span>: <span class="c-s">"Large"</span>, <span class="c-s">"price"</span>: 20 }
+]</code></pre>
+        <div class="cap" style="border-bottom:0;border-top:1px solid var(--rule)"><span>validation key for row 2</span></div>
+<pre><code>tiers.1.fields.price</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band reveal">
+  <div class="mx">
+    <p class="eyebrow">05 &middot; The honest comparison</p>
+    <h2>If your shape is fixed and small, skip this package.</h2>
+    <p class="lede">Nova already addresses into a JSON column and Eloquent already casts one. Two fields, no dependency &mdash; and it works today.</p>
+    <div class="split">
+      <div class="code">
+        <div class="cap"><span>plain Nova</span><b>enough for this</b></div>
+<pre><code><span class="c-c">// app/Models/Product.php</span>
+<span class="c-k">protected</span> $casts = [<span class="c-s">'meta'</span> =&gt; <span class="c-s">'array'</span>];
+
+<span class="c-c">// app/Nova/Product.php</span>
+<span class="c-f">Text</span>::<span class="c-k">make</span>(<span class="c-s">'Discount Type'</span>,  <span class="c-s">'meta-&gt;type'</span>),
+<span class="c-f">Number</span>::<span class="c-k">make</span>(<span class="c-s">'Discount Value'</span>, <span class="c-s">'meta-&gt;value'</span>),</code></pre>
+      </div>
+      <div class="card" style="margin:0">
+        <span class="kind">where that stops</span>
+        <h3>Four things it cannot do</h3>
+        <ul>
+          <li>Hide, move or make a whole group readonly in one call</li>
+          <li>Let the user create keys &mdash; Nova's <code>KeyValue</code> renders nothing for an object value</li>
+          <li>Put rows in a column you also share with other keys</li>
+          <li>Merge, default, prune or encrypt the structure without writing it yourself</li>
+        </ul>
+        <p style="margin-top:.9rem">The trade: <code>Json</code> is not a Nova <code>Field</code>, so a few Nova APIs will not accept one. <code>JsonEditor</code> is a real field, and costs an 83&nbsp;KB gzipped bundle.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="support" id="sponsorband">
+  <div class="mx">
+    <p class="eyebrow">Support this package</p>
+    <div class="top-grid">
+      <div>
+        <h2>Free forever. Not free to <em>maintain</em>.</h2>
+        <p>Nobody notices a JSON column that keeps its shape. The work that goes unseen is the part that keeps it that way: reading Nova's fill pipeline again after every minor release, checking that a readonly field still cannot have its value pruned, and rebuilding <code>dist/</code> when the asset externals move. Four of the twelve defects fixed in 2.0 threw nothing at all &mdash; finding that kind of thing is slow, unglamorous work. It stays MIT either way.</p>
+        <p>Sponsorship buys the hours to keep this green across new Nova majors: the compatibility passes, the regression tests for bugs nobody has hit yet, and the upgrade notes that say plainly which of your stored values are about to change. Not features &mdash; maintenance. It stays MIT either way.</p>
+      </div>
+      <div class="sponsor-card">
+        <div class="price">$5</div>
+        <div class="terms">per month &middot; cancel anytime</div>
+        <a class="btn" href="https://github.com/sponsors/gabrielesbaiz">&#9829; Become a sponsor</a>
+        <p class="fine">Company tiers get your logo in the README and on this page.</p>
+      </div>
+    </div>
+    <div class="ways">
+      <div class="w"><span class="ftag">FREE</span><h3>&#11088; Star the repo</h3><p>Thirty seconds, and it is the first signal another Laravel developer looks at.</p></div>
+      <div class="w"><span class="ftag">FREE</span><h3>&#128027; Open a good issue</h3><p>A reproduction with the model's casts and the field definition is worth more than you think.</p></div>
+      <div class="w"><h3>&#10084;&#65039; Sponsor from $5</h3><p>Monthly, cancel anytime. It pays for the compatibility passes nobody sees.</p></div>
+      <div class="w"><h3>&#127970; Company tier</h3><p>If this field is holding data in your admin panel at work, this is the tier for you.</p></div>
+    </div>
+    <div class="why"><b>Why ask at all?</b> This package is MIT and always will be. Nothing is paywalled, nothing phones home, and no <b>field mode</b> is held back for sponsors. Sponsorship buys maintenance time, not features &mdash; and if you cannot sponsor, the star and the bug report genuinely help.</div>
+  </div>
+</section>
+</div>
+
+<!-- ==================== INTRO ==================== -->
+<div class="page" id="intro">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Introduction</h1>
+    <p class="sub">What this package is for, and the cases where plain Nova is already enough.</p>
+
+    <section id="intro-need"><h2>Do you need this?</h2>
+      <p>If the shape of your JSON is fixed and small, you probably do not. Nova already addresses into a JSON column and Eloquent already casts one:</p>
+      <div class="code"><div class="cap"><span>plain Nova</span><b>PHP</b></div>
+<pre><code><span class="c-c">// app/Models/Product.php</span>
+<span class="c-k">protected</span> $casts = [<span class="c-s">'meta'</span> =&gt; <span class="c-s">'array'</span>];
+
+<span class="c-c">// app/Nova/Product.php</span>
+<span class="c-f">Text</span>::<span class="c-k">make</span>(<span class="c-s">'Discount Type'</span>,  <span class="c-s">'meta-&gt;type'</span>),
+<span class="c-f">Number</span>::<span class="c-k">make</span>(<span class="c-s">'Discount Value'</span>, <span class="c-s">'meta-&gt;value'</span>),</code></pre></div>
+      <p>That works today. <code>Field::resolveAttribute()</code> resolves <code>meta-&gt;type</code> with <code>data_get()</code>, and <code>fillModelWithData()</code> writes it back with <code>forceFill()</code>. Two fields, no package.</p>
+      <p>It stops working the moment you want any of these:</p>
+      <ul>
+        <li><b>A group you can move, hide or make readonly as a unit</b> &mdash; <code>-&gt;hideFromIndex()</code> once instead of on nine fields, and no chance of the ninth being forgotten.</li>
+        <li><b>Keys the user creates.</b> Nova has <code>KeyValue</code>, but it stores every value as a string and renders <em>nothing at all</em> for a value that is an object or an array (<code>KeyValueItem.vue</code> is guarded by <code>v-if="isNotObject"</code>).</li>
+        <li><b>Rows in a JSON column.</b> Nova's <code>Repeater</code> owns the whole column, so it cannot share one with other keys, and it has no minimum or maximum.</li>
+        <li><b>A column with no cast.</b> The moment you want to merge, default, prune or encrypt that structure, you are writing it yourself.</li>
+      </ul>
+    </section>
+
+    <section id="intro-two"><h2>The two fields</h2>
+      <div class="cards">
+        <div class="card"><span class="kind">field composer</span><h3>Json</h3>
+          <p>Not a Nova <code>Field</code>. It extends <code>FieldMergeValue</code>, rewrites each child's attribute, and dissolves into the parent field list. Ships no assets at all.</p></div>
+        <div class="card"><span class="kind">nova field</span><h3>JsonEditor</h3>
+          <p>A real field with a Vue 3 front end. Owns the column and renders a tree, key/value, raw or repeatable editor.</p></div>
+      </div>
+      <div class="note"><b>The trade.</b> Because <code>Json</code> is a composer rather than a field, Nova renders the children for free &mdash; but a handful of Nova APIs that expect a <code>Field</code> will not accept a group. <code>JsonEditor</code> is a real field, and costs an 83&nbsp;KB gzipped asset bundle in return.</div>
+    </section>
+
+    <section id="intro-30"><h2>What changed in 2.0</h2>
+      <p>2.0 is a clean break from the 1.x port of <a href="https://github.com/armincms/json">armincms/json</a>. Twelve defects are fixed; four of them were losing or corrupting data without throwing anything.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Area</th><th>1.x</th><th>2.0</th></tr></thead>
+        <tbody>
+          <tr><td>Two groups, one column</td><td>Second wipes the first</td><td>They merge</td></tr>
+          <tr><td>Uncast column, 2+ fields</td><td>Corrupted structure</td><td>Correct</td></tr>
+          <tr><td>Action over many models</td><td>Only model 1 cleared</td><td>Each independent</td></tr>
+          <tr><td><code>Boolean</code> in a group</td><td>Stored <code>"1"</code></td><td>Stores <code>true</code></td></tr>
+          <tr><td><code>-&gt;readonly()</code> on a group</td><td>Threw</td><td>Forwarded</td></tr>
+        </tbody>
+      </table></div>
+      <p>The full list is on the <a href="#/upgrade">upgrading page</a>, which also says which of your stored values are about to change.</p>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== INSTALL ==================== -->
+<div class="page" id="install">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Installation</h1>
+    <p class="sub">One Composer command. No config file, and nothing to publish to get started.</p>
+
+    <section id="install-req"><h2>Requirements</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Requirement</th><th>Version</th></tr></thead>
+        <tbody>
+          <tr><td>PHP</td><td><code>^8.2</code></td></tr>
+          <tr><td>Laravel</td><td><code>^11.0</code> or <code>^12.0</code></td></tr>
+          <tr><td>Laravel Nova</td><td><code>^5.0</code></td></tr>
+          <tr><td>ext-json</td><td>required</td></tr>
+        </tbody>
+      </table></div>
+      <p>Nova is a paid package. You need your own licence, and the <code>nova.laravel.com</code> Composer repository configured.</p>
+    </section>
+
+    <section id="install-composer"><h2>Install</h2>
+      <div class="code"><div class="cap"><span>terminal</span><b>bash</b></div>
+<pre><code>composer require gabrielesbaiz/nova-field-json</code></pre></div>
+      <p>The service provider is auto-discovered. It registers the <code>JsonEditor</code> assets through <code>Nova::mix()</code> and does nothing else &mdash; there is no config file and nothing to publish to get started.</p>
+      <div class="note"><b>Using only <code>Json</code>?</b> Then nothing is loaded into Nova's bundle at all. The composer ships no JavaScript and no CSS &mdash; it is Nova's own components doing the rendering.</div>
+    </section>
+
+    <section id="install-publish"><h2>Translations</h2>
+      <div class="code"><div class="cap"><span>terminal</span><b>bash</b></div>
+<pre><code>php artisan vendor:publish --tag=nova-field-json-lang</code></pre></div>
+      <p>Publishes <code>resources/lang/en.json</code> to <code>lang/vendor/nova-field-json</code>. Every string the editor renders is in there as an identity mapping, so it doubles as the translator's template.</p>
+    </section>
+
+    <section id="install-first"><h2>Your first field</h2>
+      <p>Cast the column on the model, then compose into it:</p>
+      <div class="split">
+        <div class="code"><div class="cap"><span>app/Models/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-k">protected</span> $casts = [
+    <span class="c-s">'meta'</span> =&gt; <span class="c-s">'array'</span>,
+];</code></pre></div>
+        <div class="code"><div class="cap"><span>app/Nova/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>),
+]),</code></pre></div>
+      </div>
+      <p>A cast is not required &mdash; without one the package encodes to a JSON string itself &mdash; but it is the simpler path, and it lets the database query the column.</p>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== JSON ==================== -->
+<div class="page" id="json">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Json groups</h1>
+    <p class="sub">Composing ordinary Nova fields into one JSON column.</p>
+
+    <section id="json-compose"><h2>Composing</h2>
+      <p><code>Json::make($column, $fields)</code> takes the column name and either an array of fields or a closure returning one.</p>
+      <div class="code"><div class="cap"><span>both forms</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>),
+]),
+
+<span class="c-c">// A closure is evaluated when the group is built, which is useful when</span>
+<span class="c-c">// the field list depends on the request or on a gate.</span>
+<span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, <span class="c-k">fn</span> () =&gt; [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>),
+    ...(auth()-&gt;user()-&gt;isAdmin() ? [<span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Internal'</span>), <span class="c-s">'internal'</span>)] : []),
+]),</code></pre></div>
+      <p>Each child's <code>attribute</code> is rewritten to <code>column-&gt;key</code>, which is the form Nova resolves through <code>data_get()</code>.</p>
+      <div class="note"><b>The separator is fixed at <code>-&gt;</code>.</b> Nova's <code>Field::resolveAttribute()</code> hard-codes <code>str_replace('-&gt;', '.', $attribute)</code>, so any other separator would render every field blank. It is an internal wire format you never type.</div>
+    </section>
+
+    <section id="json-nesting"><h2>Nesting</h2>
+      <p>A <code>Json</code> group inside a <code>Json</code> group nests the structure. There is no depth limit.</p>
+      <div class="split">
+        <div class="code"><div class="cap"><span>three levels</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Select</span>::<span class="c-k">make</span>(__(<span class="c-s">'Type'</span>), <span class="c-s">'type'</span>),
+
+    <span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'discount'</span>, [
+        <span class="c-f">Select</span>::<span class="c-k">make</span>(__(<span class="c-s">'Kind'</span>), <span class="c-s">'kind'</span>),
+        <span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'limits'</span>, [
+            <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Max'</span>), <span class="c-s">'max'</span>),
+        ]),
+    ]),
+]),</code></pre></div>
+        <div class="out"><div class="cap"><span>attribute of the deepest field</span></div>
+<pre><code>meta-&gt;discount-&gt;limits-&gt;max</code></pre>
+        <div class="cap" style="border-bottom:0;border-top:1px solid var(--rule)"><span>products.meta</span></div>
+<pre><code>{
+  <span class="c-s">"type"</span>: <span class="c-s">"seasonal"</span>,
+  <span class="c-s">"discount"</span>: {
+    <span class="c-s">"kind"</span>: <span class="c-s">"percent"</span>,
+    <span class="c-s">"limits"</span>: { <span class="c-s">"max"</span>: 100 }
+  }
+}</code></pre></div>
+      </div>
+    </section>
+
+    <section id="json-sharing"><h2>Sharing a column</h2>
+      <p>Several groups can write to one column. They merge; nothing you did not declare is touched.</p>
+      <div class="code"><div class="cap"><span>two groups, one column</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>),
+]),
+
+<span class="c-c">// ... other fields, a Panel, a Tab ...</span>
+
+<span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Boolean</span>::<span class="c-k">make</span>(__(<span class="c-s">'Featured'</span>), <span class="c-s">'featured'</span>),
+]),
+
+<span class="c-c">// {"label": "Winter sale", "featured": true}</span></code></pre></div>
+      <p>Keys written outside Nova survive too &mdash; a group only ever touches the paths its own fields declare.</p>
+      <div class="code"><div class="cap"><span>a job wrote a key Nova never renders</span><b>PHP</b></div>
+<pre><code>$product-&gt;meta = [<span class="c-s">'set_by_a_job'</span> =&gt; 1];
+
+<span class="c-c">// after a Nova save that only touches `label`</span>
+<span class="c-c">// ['set_by_a_job' =&gt; 1, 'label' =&gt; 'Winter sale']</span></code></pre></div>
+      <div class="note warn"><b>In 1.x this silently destroyed data.</b> The first child of a group set the whole column to <code>null</code> before writing, so whichever group filled second wiped the first unless you remembered <code>-&gt;saveHistory()</code>. That method is gone, and merging is the default.</div>
+      <div class="note"><b>Nothing is deleted that was not written.</b> Nova filters readonly, computed, unauthorised and view-hidden fields out of the fill <em>before</em> any field runs, so treating &ldquo;this path was not written&rdquo; as a removal would destroy values the user never touched. Absent means unchanged.
+      <br><br>The consequence: a key whose field you later delete from the group stays in the column. Use <code>-&gt;replaces()</code> if you want it gone.</div>
+    </section>
+
+    <section id="json-replaces"><h2>Replacing a column</h2>
+      <div class="code"><div class="cap"><span>exclusive ownership</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>),
+])-&gt;<span class="c-k">replaces</span>(),</code></pre></div>
+      <p>Everything else in the column is discarded on save. A replacing group must be the only group on its column; sharing one throws <code>JsonFieldException</code> rather than racing silently.</p>
+    </section>
+
+    <section id="json-forwarding"><h2>Forwarding methods</h2>
+      <p>Calling a field method on the group applies it to every child, nested ones included.</p>
+      <div class="code"><div class="cap"><span>applied to every leaf</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>),
+    <span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'inner'</span>, [<span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Note'</span>), <span class="c-s">'note'</span>)]),
+])
+    -&gt;<span class="c-k">hideFromIndex</span>()
+    -&gt;<span class="c-k">readonly</span>()
+    -&gt;<span class="c-k">help</span>(__(<span class="c-s">'Managed by the import job.'</span>)),</code></pre></div>
+      <p>Around forty methods are forwarded, covering <code>FieldElement</code>, <code>Field</code>, <code>MutableFields</code>, <code>HandlesValidation</code>, help text, <code>Metable</code> and the authorisation traits. Methods that live in opt-in Nova traits &mdash; <code>dependsOn()</code>, <code>copyable()</code>, <code>filterable()</code>, <code>peekable()</code> &mdash; are applied only to the children that support them.</p>
+      <div class="code"><div class="cap"><span>an unknown method</span><b>exception</b></div>
+<pre><code>JsonFieldException: Json::make('meta', [...])-&gt;hideFromIndexx()
+is not a forwardable field method. Did you mean -&gt;hideFromIndex()?
+Use -&gt;each(fn (Field $field) =&gt; $field-&gt;hideFromIndexx(...)) to
+reach every child directly.</code></pre></div>
+      <p>The full list is the <code>ForwardsFieldCalls::FORWARDED</code> constant. <code>Json</code> is also <code>Macroable</code>, and a macro wins over the allowlist:</p>
+      <div class="code"><div class="cap"><span>a macro beats the allowlist</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">macro</span>(<span class="c-s">'compactAll'</span>, <span class="c-k">function</span> () {
+    <span class="c-k">return</span> $this-&gt;<span class="c-k">each</span>(<span class="c-k">fn</span> (<span class="c-f">Field</span> $field) =&gt; $field-&gt;<span class="c-k">compact</span>());
+});</code></pre></div>
+    </section>
+
+    <section id="json-dependson"><h2>Dependent fields</h2>
+      <p>A child is an ordinary Nova field, so <code>-&gt;dependsOn()</code> drives it exactly as it drives a column-backed one. The only rule is that the group rewrites a child's attribute to <code>column-&gt;key</code>, and <code>dependsOn()</code> keys on attributes &mdash; so watch the <em>rewritten</em> attribute.</p>
+      <div class="code"><div class="cap"><span>reactive rules inside one column</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Select</span>::<span class="c-k">make</span>(__(<span class="c-s">'Type'</span>), <span class="c-s">'type'</span>)-&gt;<span class="c-k">options</span>([
+        <span class="c-s">'percent'</span> =&gt; __(<span class="c-s">'Percent'</span>),
+        <span class="c-s">'amount'</span> =&gt; __(<span class="c-s">'Amount'</span>),
+    ]),
+
+    <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Value'</span>), <span class="c-s">'value'</span>)
+        -&gt;<span class="c-k">dependsOn</span>(<span class="c-s">'meta-&gt;type'</span>, <span class="c-k">function</span> (<span class="c-f">Number</span> $field, <span class="c-f">NovaRequest</span> $request, <span class="c-f">FormData</span> $formData) {
+            $field-&gt;<span class="c-k">rules</span>($formData-&gt;<span class="c-k">get</span>(<span class="c-s">'meta-&gt;type'</span>) === <span class="c-s">'percent'</span> ? <span class="c-s">'max:100'</span> : <span class="c-s">'max:100000'</span>);
+        }),
+]),</code></pre></div>
+      <p>A child can equally depend on a plain field outside the group (<code>-&gt;dependsOn('status', &hellip;)</code>), and a group one level deeper is watched as <code>meta-&gt;inner-&gt;key</code>. Calling <code>-&gt;dependsOn()</code> on the group forwards it to every child that supports it.</p>
+      <div class="note warn"><b>Pass the attribute as a string, not the sibling field.</b> <code>Dependent::__construct()</code> reads <code>$field-&gt;attribute</code> the moment you call <code>dependsOn()</code> &mdash; before the group rewrites it &mdash; so passing the object records <code>type</code> instead of <code>meta-&gt;type</code>, and the front end watches a field that does not exist.</div>
+    </section>
+
+    <section id="json-each"><h2>Reaching a child directly</h2>
+      <div class="code"><div class="cap"><span>the escape hatch</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [...])
+    -&gt;<span class="c-k">each</span>(<span class="c-k">fn</span> (<span class="c-f">Field</span> $field) =&gt; $field-&gt;<span class="c-k">withMeta</span>([<span class="c-s">'extraAttributes'</span> =&gt; [<span class="c-s">'step'</span> =&gt; 5]])),
+
+<span class="c-c">// ->apply() is the same method, for call sites where it reads better</span>
+<span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [...])-&gt;<span class="c-k">apply</span>(<span class="c-k">fn</span> ($field) =&gt; $field-&gt;<span class="c-k">somethingExotic</span>()),</code></pre></div>
+      <div class="note warn"><b>Writing a property on the group throws.</b> In 1.x <code>$json-&gt;someProperty = $x</code> was forwarded to every child, which quietly swallowed typos. Use <code>-&gt;each(fn (Field $field) =&gt; $field-&gt;textAlign = 'right')</code> instead.</div>
+    </section>
+
+    <section id="json-actions"><h2>Using a group in an action</h2>
+      <p>Nova's action field list wants <code>Field</code> instances, so flatten the group:</p>
+      <div class="code"><div class="cap"><span>app/Nova/Actions/UpdateMeta.php</span><b>PHP</b></div>
+<pre><code><span class="c-k">public function</span> <span class="c-f">fields</span>(<span class="c-f">NovaRequest</span> $request): <span class="c-k">array</span>
+{
+    <span class="c-k">return</span> <span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+        <span class="c-f">Select</span>::<span class="c-k">make</span>(__(<span class="c-s">'Type'</span>), <span class="c-s">'type'</span>)-&gt;<span class="c-k">default</span>(<span class="c-s">'percent'</span>),
+        <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Value'</span>), <span class="c-s">'value'</span>),
+    ])-&gt;<span class="c-k">resolveForAction</span>($request)-&gt;<span class="c-k">fields</span>();
+}
+
+<span class="c-k">public function</span> <span class="c-f">handle</span>(<span class="c-f">ActionFields</span> $fields, <span class="c-f">Collection</span> $models)
+{
+    <span class="c-c">// $fields->meta === ['type' => 'percent', 'value' => 12]</span>
+}</code></pre></div>
+      <p><code>resolveForAction()</code> is what makes <code>-&gt;default()</code> work here; 1.x had no equivalent and silently dropped defaults on action fields. Running the action over many models is safe: each model accumulates its own state.</p>
+    </section>
+
+    <section id="json-unsupported"><h2>What cannot go in a group</h2>
+      <p>Relationship fields (<code>BelongsTo</code>, <code>MorphTo</code>, <code>HasMany</code>) hydrate the model or a pivot directly rather than producing a storable value, and <code>Unfillable</code> fields (<code>Heading</code>, <code>Badge</code>, <code>Line</code>, <code>Gravatar</code>, <code>Status</code>, <code>Sparkline</code>, <code>UiAvatar</code>) produce no value at all. Both throw at boot.</p>
+      <div class="code"><div class="cap"><span>rejected at boot</span><b>exception</b></div>
+<pre><code>JsonFieldException: [Laravel\Nova\Fields\Heading] cannot be used
+inside Json::make('meta', [...]). Relationship and unfillable fields
+hydrate the model directly instead of producing a storable value.</code></pre></div>
+      <p>1.x accepted them and silently stored nothing.</p>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== EDITOR ==================== -->
+<div class="page" id="editor">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>JsonEditor</h1>
+    <p class="sub">A real Nova field for columns whose keys belong to the user rather than the schema.</p>
+
+    <section id="ed-modes"><h2>Modes</h2>
+      <div class="code"><div class="cap"><span>app/Nova/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-k">use</span> Gabrielesbaiz\NovaFieldJson\<span class="c-f">JsonEditor</span>;
+
+<span class="c-f">JsonEditor</span>::<span class="c-k">make</span>(__(<span class="c-s">'Metadata'</span>), <span class="c-s">'meta'</span>),           <span class="c-c">// tree, the default</span>
+<span class="c-f">JsonEditor</span>::<span class="c-k">make</span>(__(<span class="c-s">'Metadata'</span>), <span class="c-s">'meta'</span>)-&gt;<span class="c-k">keyValue</span>(),
+<span class="c-f">JsonEditor</span>::<span class="c-k">make</span>(__(<span class="c-s">'Metadata'</span>), <span class="c-s">'meta'</span>)-&gt;<span class="c-k">raw</span>(),</code></pre></div>
+      <p>The field is hidden from the index by default &mdash; it is a wide, interactive control. Call <code>-&gt;showOnIndex()</code> to opt back in, which renders a compact badge.</p>
+    </section>
+
+    <section id="ed-tree"><h2>Tree mode</h2>
+      <p>A collapsible tree over arbitrarily nested data, with per-node type badges, inline key renaming and drag-to-reorder.</p>
+      <div class="split">
+        <div class="code"><div class="cap"><span>options</span><b>PHP</b></div>
+<pre><code><span class="c-f">JsonEditor</span>::<span class="c-k">make</span>(__(<span class="c-s">'Metadata'</span>), <span class="c-s">'meta'</span>)
+    -&gt;<span class="c-k">tree</span>()
+    -&gt;<span class="c-k">expandDepth</span>(2)
+    -&gt;<span class="c-k">height</span>(400)
+    -&gt;<span class="c-k">allowTypeChange</span>(<span class="c-k">false</span>)
+    -&gt;<span class="c-k">lockedKeys</span>([<span class="c-s">'theme'</span>, <span class="c-s">'limits.max'</span>]),</code></pre></div>
+        <figure class="pcard" style="margin:0">
+          <div class="ph"><b>Metadata</b><span>tree</span></div>
+          <div class="rows" id="docPanelRows"></div>
+          <div class="pf">+ Add key</div>
+        </figure>
+      </div>
+      <p>Locked keys are dotted paths: the value stays editable, the key cannot be renamed or removed.</p>
+      <div class="note"><b>Above 5,000 nodes the editor falls back to raw mode</b> and says so. A <code>role="tree"</code> with tens of thousands of rows locks the browser.</div>
+    </section>
+
+    <section id="ed-keyvalue"><h2>Key/value mode</h2>
+      <p>Flat rows, but <b>typed</b> &mdash; which is the difference from Nova's own <code>KeyValue</code>. Each row carries a type picker (<code>string</code>, <code>number</code>, <code>boolean</code>, <code>null</code>, <code>array</code>, <code>object</code>), so <code>42</code> stays a number and <code>true</code> stays a boolean.</p>
+      <p>It also tells the user when a row will not be saved. Nova's <code>KeyValue</code> drops a blank-key row silently and lets a duplicate key quietly overwrite its twin; this flags both inline.</p>
+    </section>
+
+    <section id="ed-raw"><h2>Raw mode</h2>
+      <p>A CodeMirror editor over the JSON source, with line numbers, bracket matching, a Format button (<code>Cmd/Ctrl+Shift+F</code>) and a located parse error.</p>
+      <div class="code"><div class="cap"><span>unparseable input</span><b>validation</b></div>
+<pre><code>The Metadata field must contain valid JSON.</code></pre></div>
+      <p>If the value will not parse, the literal text is submitted rather than discarded, so the server reports a real validation error instead of the user's work vanishing. The editor also follows Nova's dark-mode toggle live &mdash; Nova's own <code>Code</code> field reads its theme once at mount and stays light until reload.</p>
+    </section>
+
+    <section id="ed-repeatable"><h2>Repeatable rows</h2>
+      <div class="split">
+        <div class="code"><div class="cap"><span>app/Nova/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-f">JsonEditor</span>::<span class="c-k">make</span>(__(<span class="c-s">'Tiers'</span>), <span class="c-s">'tiers'</span>)
+    -&gt;<span class="c-k">repeatable</span>(<span class="c-k">fn</span> () =&gt; [
+        <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>)-&gt;<span class="c-k">rules</span>(<span class="c-s">'required'</span>),
+        <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Price'</span>), <span class="c-s">'price'</span>)-&gt;<span class="c-k">rules</span>(<span class="c-s">'numeric'</span>),
+        <span class="c-f">Boolean</span>::<span class="c-k">make</span>(__(<span class="c-s">'Default'</span>), <span class="c-s">'is_default'</span>),
+    ])
+    -&gt;<span class="c-k">min</span>(1)-&gt;<span class="c-k">max</span>(10)-&gt;<span class="c-k">sortable</span>(),</code></pre></div>
+        <div class="out"><div class="cap"><span>products.tiers</span><span>result</span></div>
+<pre><code>[
+  { <span class="c-s">"label"</span>: <span class="c-s">"Small"</span>, <span class="c-s">"price"</span>: 10,
+    <span class="c-s">"is_default"</span>: <span class="c-k">true</span> },
+  { <span class="c-s">"label"</span>: <span class="c-s">"Large"</span>, <span class="c-s">"price"</span>: 20,
+    <span class="c-s">"is_default"</span>: <span class="c-k">false</span> }
+]</code></pre></div>
+      </div>
+      <p>Rows render with the real Nova components for each sub-field, so a <code>Select</code>, a <code>Date</code> or a <code>File</code> behaves exactly as it would anywhere else &mdash; including file uploads, which are deferred until after the save.</p>
+      <div class="note"><b>Prefer the closure form.</b> An array works and is cloned per row, but the closure makes it obvious that each row needs its own field objects. Sharing one set means every row renders the last row's values.</div>
+      <div class="note warn"><b><code>-&gt;sortable()</code> means rows are reorderable</b>, not &ldquo;sortable column on the index&rdquo;. Nova's own <code>Repeater</code> makes the same redefinition. Use <code>-&gt;sortableColumn()</code> for index sorting on the raw column.</div>
+    </section>
+
+    <section id="ed-display"><h2>Index and detail</h2>
+      <p>On the index, a compact badge &mdash; <code>{3}</code> for an object, <code>[5]</code> for an array &mdash; with the pretty-printed value in a hover popover. Nova's <code>KeyValue</code> has no index representation at all.</p>
+      <p>On the detail screen, a read-only collapsible viewer with expand-all, collapse-all and copy-to-clipboard. This is a purpose-built viewer, not the form components in disabled mode, so nested values are actually visible.</p>
+      <div class="code"><div class="cap"><span>display options</span><b>PHP</b></div>
+<pre><code><span class="c-f">JsonEditor</span>::<span class="c-k">make</span>(__(<span class="c-s">'Metadata'</span>), <span class="c-s">'meta'</span>)
+    -&gt;<span class="c-k">expandDepth</span>(3)   <span class="c-c">// how deep the detail viewer starts open</span>
+    -&gt;<span class="c-k">collapsible</span>(),   <span class="c-c">// Nova's standard collapsible panel</span></code></pre></div>
+    </section>
+
+    <section id="ed-keyboard"><h2>Keyboard and accessibility</h2>
+      <p>The tree is a real <code>role="tree"</code> with a roving tab index &mdash; one tab stop for the whole control, not one per node.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Key</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><code>&darr;</code> / <code>&uarr;</code></td><td>Next / previous visible node</td></tr>
+          <tr><td><code>&rarr;</code></td><td>Expand, or descend</td></tr>
+          <tr><td><code>&larr;</code></td><td>Collapse, or move to the parent</td></tr>
+          <tr><td><code>Home</code> / <code>End</code></td><td>First / last node</td></tr>
+          <tr><td><code>Enter</code></td><td>Edit the focused node</td></tr>
+          <tr><td><code>Shift+Enter</code></td><td>Add a sibling</td></tr>
+          <tr><td><code>Cmd/Ctrl+Enter</code></td><td>Add a child</td></tr>
+          <tr><td><code>Delete</code> / <code>Backspace</code></td><td>Remove the focused node</td></tr>
+          <tr><td><code>Alt+&uarr;</code> / <code>Alt+&darr;</code></td><td>Reorder within the parent</td></tr>
+          <tr><td><code>Escape</code></td><td>Revert the edit in progress</td></tr>
+        </tbody>
+      </table></div>
+      <p>In key/value mode, <code>Enter</code> on the last value adds a row and focuses its key. Nodes carry <code>aria-level</code>, <code>aria-posinset</code>, <code>aria-setsize</code>, <code>aria-expanded</code> and <code>aria-selected</code>; every icon-only button has an <code>aria-label</code>; and reorders and removals are announced through a polite live region, because drag is otherwise invisible to a screen reader.</p>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== STORAGE ==================== -->
+<div class="page" id="storage">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Storage &amp; validation</h1>
+    <p class="sub">These options apply identically to <code>Json</code> and <code>JsonEditor</code>.</p>
+
+    <section id="st-casting"><h2>Casting</h2>
+      <p>By default the package looks at the model's casts and does the right thing:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Column</th><th>What is assigned</th></tr></thead>
+        <tbody>
+          <tr><td><code>'array'</code>, <code>'json'</code>, <code>'object'</code>, <code>'collection'</code></td><td>the PHP array &mdash; Eloquent encodes it</td></tr>
+          <tr><td><code>encrypted:array</code> and friends</td><td>the PHP array</td></tr>
+          <tr><td><code>AsArrayObject</code>, <code>AsCollection</code>, <code>AsEnumCollection</code>, any <code>Castable</code>/<code>CastsAttributes</code></td><td>the PHP array</td></tr>
+          <tr><td>no cast</td><td>a JSON string</td></tr>
+          <tr><td>Nova's <code>Fluent</code> (action fields)</td><td>the PHP array, always</td></tr>
+        </tbody>
+      </table></div>
+      <div class="code"><div class="cap"><span>forcing it</span><b>PHP</b></div>
+<pre><code><span class="c-k">use</span> Gabrielesbaiz\NovaFieldJson\Enums\<span class="c-f">StorageFormat</span>;
+
+<span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [...])-&gt;<span class="c-k">storeAs</span>(<span class="c-f">StorageFormat</span>::Encoded),  <span class="c-c">// always a JSON string</span>
+<span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [...])-&gt;<span class="c-k">storeAs</span>(<span class="c-f">StorageFormat</span>::Native),   <span class="c-c">// always a PHP array</span></code></pre></div>
+      <p><code>StorageFormat::Encoded</code> is the replacement for 1.x's <code>-&gt;ignoreCasting()</code>.</p>
+    </section>
+
+    <section id="st-encryption"><h2>Encryption</h2>
+      <div class="code"><div class="cap"><span>encrypted at rest</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'vault'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Token'</span>), <span class="c-s">'token'</span>),
+])-&gt;<span class="c-k">encrypted</span>(),</code></pre></div>
+      <p>The structure is JSON-encoded and then run through <code>Crypt::encryptString()</code>.</p>
+      <div class="note warn"><b>Do not combine this with an <code>encrypted:*</code> Eloquent cast</b> &mdash; the value would be encrypted twice and the original lost. The package throws <code>JsonFieldException</code> rather than letting that happen.</div>
+      <div class="code"><div class="cap"><span>after an APP_KEY rotation</span><b>exception</b></div>
+<pre><code>The value stored in [vault] could not be decrypted. This usually
+means APP_KEY was rotated after the value was written, or
+-&gt;encrypted() was added to a column that already holds plain JSON.</code></pre></div>
+    </section>
+
+    <section id="st-flags"><h2>Encoding flags</h2>
+      <p>Uncast columns are encoded with <code>JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR</code>, so <code>caff&egrave;</code> stays <code>caff&egrave;</code> rather than becoming <code>caffè</code>.</p>
+      <div class="code"><div class="cap"><span>overriding them</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [...])-&gt;<span class="c-k">jsonFlags</span>(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),</code></pre></div>
+      <p><code>JSON_THROW_ON_ERROR</code> is always added &mdash; a silent <code>null</code> on a column you are about to write is never what you want.</p>
+    </section>
+
+    <section id="st-defaults"><h2>Defaults and pruning</h2>
+      <div class="code"><div class="cap"><span>merged underneath what is stored</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>),
+])-&gt;<span class="c-k">defaults</span>([
+    <span class="c-s">'discount.type'</span>  =&gt; <span class="c-s">'percent'</span>,
+    <span class="c-s">'discount.value'</span> =&gt; 0,
+]),</code></pre></div>
+      <p>Keyed by dotted path. Anything already in the column wins, so this fills in structure for rows written before a key existed without overwriting rows that already have it.</p>
+      <div class="code"><div class="cap"><span>dropping nulls</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>)-&gt;<span class="c-k">nullable</span>(),
+])-&gt;<span class="c-k">pruneNulls</span>(),</code></pre></div>
+      <p>Null leaves are removed, and so is any parent left empty by that removal. It runs once on the final structure, not per field.</p>
+    </section>
+
+    <section id="st-validation"><h2>Validation</h2>
+      <p>Rules go on the child fields, exactly as they would anywhere else. Nova maps the validation key to the field name automatically, so the message reads <em>&ldquo;The Discount Type field is required.&rdquo;</em>, not <em>&ldquo;The meta-&gt;type field is required.&rdquo;</em>.</p>
+      <div class="split">
+        <div class="code"><div class="cap"><span>app/Nova/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Select</span>::<span class="c-k">make</span>(__(<span class="c-s">'Discount Type'</span>), <span class="c-s">'type'</span>)
+        -&gt;<span class="c-k">rules</span>(<span class="c-s">'required'</span>),
+
+    <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Discount Value'</span>), <span class="c-s">'value'</span>)
+        -&gt;<span class="c-k">rules</span>(<span class="c-s">'numeric'</span>, <span class="c-s">'min:0'</span>),
+]),</code></pre></div>
+        <div class="out"><div class="cap"><span>what the user sees</span><b>message</b></div>
+<pre><code>The Discount Type field is required.
+
+<span class="c-c">// not:</span>
+<span class="c-c">// The meta-&gt;type field is required.</span></code></pre></div>
+      </div>
+      <p>For repeatable rows, rules on the sub-fields become per-row rules and the attribute names are humanised:</p>
+      <div class="split">
+        <div class="code"><div class="cap"><span>app/Nova/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-f">JsonEditor</span>::<span class="c-k">make</span>(__(<span class="c-s">'Tiers'</span>), <span class="c-s">'tiers'</span>)
+    -&gt;<span class="c-k">repeatable</span>(<span class="c-k">fn</span> () =&gt; [
+        <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>)-&gt;<span class="c-k">rules</span>(<span class="c-s">'required'</span>),
+    ])
+    -&gt;<span class="c-k">min</span>(1)
+    -&gt;<span class="c-k">max</span>(5),</code></pre></div>
+        <div class="out"><div class="cap"><span>the rules that generates</span><b>rules</b></div>
+<pre><code>tiers                   array, min:1, max:5
+tiers.0.fields.label    required
+
+<span class="c-c">// reported as “Tiers #1 Label”</span></code></pre></div>
+      </div>
+      <div class="note"><b>The <code>fields</code> segment is not cosmetic.</b> Nova's front-end <code>HandlesValidationErrors</code> derives a nested field's error key as <code>{parent}.{index}.fields.{attribute}</code>. Declare a rule against <code>tiers.*.price</code> instead of <code>tiers.*.fields.price</code> and the message renders nowhere, with nothing thrown.</div>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== RECIPES ==================== -->
+<div class="page" id="recipes">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Recipes</h1>
+    <p class="sub">Whole, paste-able solutions to tasks that come up in real panels.</p>
+
+    <section id="rc-tabs"><h2>A settings panel split across tabs</h2>
+      <div class="code"><div class="cap"><span>app/Nova/Account.php</span><b>PHP</b></div>
+<pre><code><span class="c-f">Tab</span>::<span class="c-k">group</span>(__(<span class="c-s">'Settings'</span>), [
+    <span class="c-f">Tab</span>::<span class="c-k">make</span>(__(<span class="c-s">'Appearance'</span>), [
+        <span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'settings'</span>, [
+            <span class="c-f">Select</span>::<span class="c-k">make</span>(__(<span class="c-s">'Theme'</span>), <span class="c-s">'theme'</span>)-&gt;<span class="c-k">options</span>([...]),
+            <span class="c-f">Boolean</span>::<span class="c-k">make</span>(__(<span class="c-s">'Compact'</span>), <span class="c-s">'compact'</span>),
+        ]),
+    ]),
+
+    <span class="c-f">Tab</span>::<span class="c-k">make</span>(__(<span class="c-s">'Limits'</span>), [
+        <span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'settings'</span>, [
+            <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Max uploads'</span>), <span class="c-s">'max_uploads'</span>),
+            <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Retention days'</span>), <span class="c-s">'retention_days'</span>),
+        ]),
+    ]),
+]),</code></pre></div>
+      <p>Both tabs write to <code>settings</code> and merge, so you get one column with four keys. In 1.x this needed <code>-&gt;saveHistory()</code> on the second group and silently destroyed data if you forgot.</p>
+    </section>
+
+    <section id="rc-roles"><h2>Different fields for different users</h2>
+      <div class="code"><div class="cap"><span>conditional field list</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, <span class="c-k">function</span> () <span class="c-k">use</span> ($request) {
+    $fields = [<span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>)];
+
+    <span class="c-k">if</span> ($request-&gt;user()-&gt;isAdmin()) {
+        $fields[] = <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Internal note'</span>), <span class="c-s">'internal_note'</span>);
+    }
+
+    <span class="c-k">return</span> $fields;
+}),</code></pre></div>
+      <p>A non-admin's save leaves <code>internal_note</code> untouched, because nothing wrote to that path and the group never deletes a path it did not write. The same is true of <code>-&gt;canSee()</code> and <code>-&gt;readonly()</code>.</p>
+    </section>
+
+    <section id="rc-encrypted"><h2>Encrypted credentials beside plain config</h2>
+      <div class="code"><div class="cap"><span>app/Nova/Integration.php</span><b>PHP</b></div>
+<pre><code><span class="c-c">// app/Models/Integration.php — only `config` is cast</span>
+<span class="c-k">protected</span> $casts = [<span class="c-s">'config'</span> =&gt; <span class="c-s">'array'</span>];
+
+<span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'config'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Endpoint'</span>), <span class="c-s">'endpoint'</span>),
+]),
+
+<span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'credentials'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Client ID'</span>), <span class="c-s">'client_id'</span>),
+    <span class="c-f">Password</span>::<span class="c-k">make</span>(__(<span class="c-s">'Client secret'</span>), <span class="c-s">'client_secret'</span>),
+])-&gt;<span class="c-k">encrypted</span>(),</code></pre></div>
+      <p>Keep <code>endpoint</code> in the plain column so you can still query it. Do not add <code>-&gt;encrypted()</code> to a column already cast <code>encrypted:array</code>.</p>
+    </section>
+
+    <section id="rc-locked"><h2>A free-form column with a locked schema key</h2>
+      <div class="code"><div class="cap"><span>app/Nova/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-f">JsonEditor</span>::<span class="c-k">make</span>(__(<span class="c-s">'Metadata'</span>), <span class="c-s">'meta'</span>)
+    -&gt;<span class="c-k">tree</span>()
+    -&gt;<span class="c-k">defaults</span>([<span class="c-s">'schema_version'</span> =&gt; 2])
+    -&gt;<span class="c-k">lockedKeys</span>([<span class="c-s">'schema_version'</span>])
+    -&gt;<span class="c-k">expandDepth</span>(2)
+    -&gt;<span class="c-k">help</span>(__(<span class="c-s">'schema_version is managed by the importer.'</span>)),</code></pre></div>
+      <p><code>defaults()</code> puts the key there for rows that predate it; <code>lockedKeys()</code> stops the user renaming or deleting it while leaving the value editable.</p>
+    </section>
+
+    <section id="rc-readable"><h2>Keeping a column readable in the database</h2>
+      <div class="code"><div class="cap"><span>no cast on the model</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+    <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>),
+])
+    -&gt;<span class="c-k">storeAs</span>(<span class="c-f">StorageFormat</span>::Encoded)
+    -&gt;<span class="c-k">jsonFlags</span>(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+    -&gt;<span class="c-k">pruneNulls</span>(),</code></pre></div>
+      <p>Pretty-printed, no escaped unicode, no null noise. Useful for columns a human reads in a database client; it costs bytes, so do not do it at volume.</p>
+    </section>
+
+    <section id="rc-tiers"><h2>Pricing tiers with per-row validation</h2>
+      <div class="split">
+        <div class="code"><div class="cap"><span>app/Models/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-k">protected</span> $casts = [
+    <span class="c-s">'tiers'</span> =&gt; <span class="c-s">'array'</span>,
+];</code></pre></div>
+        <div class="out"><div class="cap"><span>a failing row reports as</span><b>message</b></div>
+<pre><code>The Pricing tiers #2 Unit price
+must be a number.</code></pre></div>
+      </div>
+      <div class="code"><div class="cap"><span>app/Nova/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-f">JsonEditor</span>::<span class="c-k">make</span>(__(<span class="c-s">'Pricing tiers'</span>), <span class="c-s">'tiers'</span>)
+    -&gt;<span class="c-k">repeatable</span>(<span class="c-k">fn</span> () =&gt; [
+        <span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>)-&gt;<span class="c-k">rules</span>(<span class="c-s">'required'</span>, <span class="c-s">'max:40'</span>),
+        <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Minimum quantity'</span>), <span class="c-s">'min_qty'</span>)-&gt;<span class="c-k">rules</span>(<span class="c-s">'required'</span>, <span class="c-s">'integer'</span>, <span class="c-s">'min:1'</span>),
+        <span class="c-f">Currency</span>::<span class="c-k">make</span>(__(<span class="c-s">'Unit price'</span>), <span class="c-s">'price'</span>)-&gt;<span class="c-k">rules</span>(<span class="c-s">'required'</span>, <span class="c-s">'numeric'</span>, <span class="c-s">'min:0'</span>),
+    ])
+    -&gt;<span class="c-k">min</span>(1)
+    -&gt;<span class="c-k">max</span>(8)
+    -&gt;<span class="c-k">sortable</span>()
+    -&gt;<span class="c-k">help</span>(__(<span class="c-s">'Tiers apply from their minimum quantity upwards.'</span>)),</code></pre></div>
+      <p>The message renders on that row's input, because rules declared on a sub-field generate the <code>tiers.1.fields.price</code> key Nova's front end looks for.</p>
+    </section>
+
+    <section id="rc-action"><h2>Bulk-updating a JSON column from an action</h2>
+      <div class="code"><div class="cap"><span>app/Nova/Actions/ApplyDiscount.php</span><b>PHP</b></div>
+<pre><code><span class="c-k">class</span> <span class="c-f">ApplyDiscount</span> <span class="c-k">extends</span> <span class="c-f">Action</span>
+{
+    <span class="c-k">use</span> <span class="c-f">InteractsWithQueue</span>, <span class="c-f">Queueable</span>;
+
+    <span class="c-k">public function</span> <span class="c-k">fields</span>(<span class="c-f">NovaRequest</span> $request): <span class="c-f">array</span>
+    {
+        <span class="c-k">return</span> <span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [
+            <span class="c-f">Select</span>::<span class="c-k">make</span>(__(<span class="c-s">'Type'</span>), <span class="c-s">'type'</span>)
+                -&gt;<span class="c-k">options</span>([<span class="c-s">'percent'</span> =&gt; __(<span class="c-s">'Percent'</span>), <span class="c-s">'amount'</span> =&gt; __(<span class="c-s">'Amount'</span>)])
+                -&gt;<span class="c-k">default</span>(<span class="c-s">'percent'</span>)
+                -&gt;<span class="c-k">rules</span>(<span class="c-s">'required'</span>),
+
+            <span class="c-f">Number</span>::<span class="c-k">make</span>(__(<span class="c-s">'Value'</span>), <span class="c-s">'value'</span>)-&gt;<span class="c-k">rules</span>(<span class="c-s">'required'</span>, <span class="c-s">'min:0'</span>),
+        ])-&gt;<span class="c-k">resolveForAction</span>($request)-&gt;<span class="c-k">fields</span>();
+    }
+
+    <span class="c-k">public function</span> <span class="c-k">handle</span>(<span class="c-f">ActionFields</span> $fields, <span class="c-f">Collection</span> $models)
+    {
+        <span class="c-k">foreach</span> ($models <span class="c-k">as</span> $model) {
+            $model-&gt;meta = <span class="c-k">array_replace</span>($model-&gt;meta ?? [], $fields-&gt;meta);
+            $model-&gt;<span class="c-k">save</span>();
+        }
+
+        <span class="c-k">return</span> <span class="c-f">Action</span>::<span class="c-k">message</span>(__(<span class="c-s">'Discounts applied.'</span>));
+    }
+}</code></pre></div>
+      <p><code>$fields-&gt;meta</code> is the nested array. In 1.x it also carried a stray <code>hasCast</code> key, and <code>-&gt;default('percent')</code> was silently dropped.</p>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== API ==================== -->
+<div class="page" id="api">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>API reference</h1>
+    <p class="sub">Every public method on the two fields, the shared storage trait, and the enums.</p>
+
+    <section id="api-json"><h2>Json</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Signature</th><th>What it does</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td><code>Json::make(string $column, callable|iterable $fields = [])</code></td><td>Create a group writing to <code>$column</code></td><td>&mdash;</td></tr>
+          <tr><td><code>fields(): array</code></td><td>Every leaf field, nested groups flattened</td><td>&mdash;</td></tr>
+          <tr><td><code>toArray(): array</code></td><td>Alias of <code>fields()</code></td><td>&mdash;</td></tr>
+          <tr><td><code>replaces(bool $replaces = true): static</code></td><td>Discard everything else in the column</td><td><code>false</code></td></tr>
+          <tr><td><code>replacesColumn(): bool</code></td><td>Whether this group replaces the column</td><td>&mdash;</td></tr>
+          <tr><td><code>ownedPaths(): array</code></td><td>The dotted paths this group's fields map to</td><td>&mdash;</td></tr>
+          <tr><td><code>resolve(mixed $resource, ?string $attribute = null): void</code></td><td>No-op; the group has no value of its own</td><td>&mdash;</td></tr>
+          <tr><td><code>resolveForAction(NovaRequest $request): static</code></td><td>Resolve every leaf for use in an action</td><td>&mdash;</td></tr>
+          <tr><td><code>each(callable $callback): static</code></td><td>Apply a callback to every leaf</td><td>&mdash;</td></tr>
+          <tr><td><code>apply(callable $callback): static</code></td><td>Alias of <code>each()</code></td><td>&mdash;</td></tr>
+          <tr><td><code>Json::macro(string $name, callable $macro)</code></td><td>Add a method to every group</td><td>&mdash;</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="api-editor"><h2>JsonEditor</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Signature</th><th>What it does</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td><code>JsonEditor::make(string $name, ?string $attribute = null)</code></td><td>Create the editor field</td><td>&mdash;</td></tr>
+          <tr><td><code>tree(): static</code></td><td>Collapsible nested tree</td><td>the default mode</td></tr>
+          <tr><td><code>keyValue(): static</code></td><td>Flat typed key/value rows</td><td>&mdash;</td></tr>
+          <tr><td><code>raw(): static</code></td><td>CodeMirror over the JSON source</td><td>&mdash;</td></tr>
+          <tr><td><code>repeatable(Closure|iterable $fields): static</code></td><td>Repeated rows of a sub-field schema</td><td>&mdash;</td></tr>
+          <tr><td><code>mode(EditorMode $mode): static</code></td><td>Set the mode from the enum</td><td><code>EditorMode::Tree</code></td></tr>
+          <tr><td><code>min(int $min): static</code></td><td>Minimum rows (repeatable)</td><td>none</td></tr>
+          <tr><td><code>max(int $max): static</code></td><td>Maximum rows (repeatable)</td><td>none</td></tr>
+          <tr><td><code>sortable($value = true): static</code></td><td>Rows are drag-reorderable</td><td><code>false</code></td></tr>
+          <tr><td><code>sortableColumn(bool $value = true): static</code></td><td>The column is sortable on the index</td><td><code>false</code></td></tr>
+          <tr><td><code>height(int $height): static</code></td><td>Editor height in pixels</td><td><code>320</code></td></tr>
+          <tr><td><code>expandDepth(int $depth): static</code></td><td>How deep the tree and viewer start open</td><td><code>1</code></td></tr>
+          <tr><td><code>allowTypeChange(bool $allow = true): static</code></td><td>Let the user change a value's JSON type</td><td><code>true</code></td></tr>
+          <tr><td><code>lockedKeys(array $keys): static</code></td><td>Dotted paths that cannot be renamed or removed</td><td><code>[]</code></td></tr>
+          <tr><td><code>isRepeatable(): bool</code></td><td>Whether the field is in repeatable mode</td><td>&mdash;</td></tr>
+          <tr><td><code>collapsible()</code> / <code>collapsedByDefault()</code></td><td>Nova's standard collapsible panel behaviour</td><td>off</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="api-storage"><h2>Storage, on both</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Signature</th><th>What it does</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td><code>storeAs(StorageFormat $format): static</code></td><td>Force the representation</td><td>inferred from the casts</td></tr>
+          <tr><td><code>encrypted(bool $encrypted = true): static</code></td><td>Encrypt the encoded JSON at rest</td><td><code>false</code></td></tr>
+          <tr><td><code>jsonFlags(int $flags): static</code></td><td>Flags for <code>json_encode()</code></td><td>UNESCAPED_UNICODE | UNESCAPED_SLASHES | THROW_ON_ERROR</td></tr>
+          <tr><td><code>pruneNulls(bool $prune = true): static</code></td><td>Drop null leaves and the parents they empty</td><td><code>false</code></td></tr>
+          <tr><td><code>defaults(array $defaults): static</code></td><td>Values merged under the stored data, by dotted path</td><td><code>[]</code></td></tr>
+          <tr><td><code>defaultStructure(): array</code></td><td>Those defaults, expanded into a nested array</td><td>&mdash;</td></tr>
+          <tr><td><code>serializer(): JsonSerializer</code></td><td>The serializer reflecting the current options</td><td>&mdash;</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="api-enums"><h2>Enums</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Enum</th><th>Cases</th></tr></thead>
+        <tbody>
+          <tr><td><code>StorageFormat</code></td><td><code>Native</code>, <code>Encoded</code>, <code>Encrypted</code></td></tr>
+          <tr><td><code>EditorMode</code></td><td><code>Tree</code>, <code>KeyValue</code>, <code>Raw</code>, <code>Repeatable</code></td></tr>
+          <tr><td><code>RowValueType</code></td><td><code>String</code>, <code>Number</code>, <code>Boolean</code>, <code>Null</code>, <code>Arr</code>, <code>Obj</code></td></tr>
+        </tbody>
+      </table></div>
+      <p>All three are backed string enums under <code>Gabrielesbaiz\NovaFieldJson\Enums</code>.</p>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== TROUBLESHOOTING ==================== -->
+<div class="page" id="troubleshooting">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Troubleshooting</h1>
+    <p class="sub">Symptoms readers actually hit, and what to check next.</p>
+
+    <section id="tr-empty"><h2>My fields render but the column is always empty</h2>
+      <p>Check the attribute Nova is actually posting. A child inside <code>Json::make('meta', &hellip;)</code> must have a plain key as its attribute:</p>
+      <div class="code"><div class="cap"><span>the common mistake</span><b>PHP</b></div>
+<pre><code><span class="c-c">// right</span>
+<span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [<span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'label'</span>)]),      <span class="c-c">// posts meta->label</span>
+
+<span class="c-c">// wrong — the column name is already supplied by the group</span>
+<span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [<span class="c-f">Text</span>::<span class="c-k">make</span>(__(<span class="c-s">'Label'</span>), <span class="c-s">'meta-&gt;label'</span>)]),</code></pre></div>
+      <p>Then confirm the column is fillable. The package writes through <code>forceFill()</code>, but a <code>$guarded</code> that names the column still applies on a later <code>fill()</code>.</p>
+    </section>
+
+    <section id="tr-forward"><h2>JsonFieldException: not a forwardable field method</h2>
+      <p>The method is not on the allowlist. Either it does not exist on Nova's <code>Field</code> at all &mdash; <code>-&gt;showWhen*()</code> is the common one; it has never existed &mdash; or it is genuinely field-specific. Use the escape hatch:</p>
+      <div class="code"><div class="cap"><span>reach the children directly</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [...])-&gt;<span class="c-k">each</span>(<span class="c-k">fn</span> ($field) =&gt; $field-&gt;<span class="c-k">theMethod</span>(...)),</code></pre></div>
+      <p>The exception message suggests the nearest allowlist entry, which catches typos.</p>
+    </section>
+
+    <section id="tr-vanish"><h2>My second group's data keeps disappearing</h2>
+      <p>If you are on 1.x, this is the <code>saveHistory()</code> bug. Upgrade to 2.0, where merging is the default.</p>
+      <p>On 2.0, the only thing that removes a key you did not write is <code>-&gt;replaces()</code> &mdash; and it throws if two groups share the column. A silent disappearance is more likely a <code>$fillable</code>/<code>$guarded</code> issue or a model observer rewriting the attribute after the fill.</p>
+    </section>
+
+    <section id="tr-boolean"><h2>Boolean values changed from "1" to true after upgrading</h2>
+      <p>That is the fix, not a regression. 1.x read each child's value straight off the request, which skipped <code>Boolean::fillAttributeFromRequest()</code>. The same applies to <code>Code::make()-&gt;json()</code> (now an array), <code>Currency</code>, and <code>File</code> (which previously never uploaded at all).</p>
+      <p>Audit anything reading those keys, and consider a one-off normalising migration. The <a href="#/upgrade">upgrading page</a> lists the full set.</p>
+    </section>
+
+    <section id="tr-corrupt"><h2>The column contains [0 =&gt; '{"a":1}', 'b' =&gt; 2]</h2>
+      <p>Data written by 1.x to a column with no <code>array</code>/<code>json</code> cast. The old fill re-read the column between children, so the second child saw the first child's encoded string and <code>data_set()</code> appended alongside it.</p>
+      <p>2.0 writes correctly but does not repair existing rows. Write a data-fix migration: for each affected row, <code>json_decode()</code> element <code>0</code>, merge the remaining string keys over it, and write it back.</p>
+    </section>
+
+    <section id="tr-unstyled"><h2>The editor renders as an unstyled block</h2>
+      <p><code>dist/</code> is missing or stale. It is committed to the repository because it is the only thing a consuming application loads:</p>
+      <div class="code"><div class="cap"><span>terminal</span><b>bash</b></div>
+<pre><code>npm ci &amp;&amp; npm run prod</code></pre></div>
+      <p>If you installed from Packagist and still see this, clear Nova's asset cache (<code>php artisan view:clear</code>) and hard-reload &mdash; the asset URL is hashed from <code>dist/mix-manifest.json</code>.</p>
+    </section>
+
+    <section id="tr-rowerrors"><h2>Per-row validation errors do not appear on the inputs</h2>
+      <p>The error key has to be <code>{field}.{index}.fields.{attribute}</code>. If you are declaring row rules by hand rather than putting them on the sub-fields, use that shape:</p>
+      <div class="code"><div class="cap"><span>rule keys</span><b>PHP</b></div>
+<pre><code><span class="c-c">// right</span>
+<span class="c-s">'tiers.*.fields.price'</span> =&gt; <span class="c-s">'numeric'</span>,
+
+<span class="c-c">// wrong — the message will resolve to nothing in the UI</span>
+<span class="c-s">'tiers.*.price'</span> =&gt; <span class="c-s">'numeric'</span>,</code></pre></div>
+      <p>Putting <code>-&gt;rules()</code> on the sub-field instead generates the right key for you.</p>
+    </section>
+
+    <section id="tr-leftover"><h2>A key I removed from the group is still in the column</h2>
+      <p>That is deliberate. A group never deletes a path it did not write, because &ldquo;wrote nothing&rdquo; is indistinguishable from readonly, unauthorised, hidden, or simply not submitted &mdash; and deleting in those cases loses data.</p>
+      <p>If the group really does own the whole column:</p>
+      <div class="code"><div class="cap"><span>app/Nova/Product.php</span><b>PHP</b></div>
+<pre><code><span class="c-f">Json</span>::<span class="c-k">make</span>(<span class="c-s">'meta'</span>, [...])-&gt;<span class="c-k">replaces</span>(),</code></pre></div>
+      <p>Otherwise clear the key yourself in a migration, once.</p>
+    </section>
+
+    <section id="tr-notjson"><h2>The value stored in [meta] is not valid JSON</h2>
+      <p>The column holds something the package cannot decode &mdash; usually a partially-written value from 1.x, a serialized PHP array, or a column that was encrypted before <code>-&gt;encrypted()</code> was removed.</p>
+      <p>Inspect the raw value with <code>DB::table(...)-&gt;value('meta')</code>. If it is PHP-serialized, migrate it to JSON; if it is encrypted, put <code>-&gt;encrypted()</code> back.</p>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== SECURITY ==================== -->
+<div class="page" id="security">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Security</h1>
+    <p class="sub">This package writes user input into a JSON column and reads it back out. Here is what that does and does not guarantee.</p>
+
+    <section id="sec-props"><h2>Properties</h2>
+      <ul>
+        <li><b>Values are never interpolated into SQL.</b> Writes go through Eloquent's <code>forceFill()</code> and the model's casts; reads go through <code>data_get()</code>.</li>
+        <li><b>Each child field runs its own fill pipeline</b>, so a field's own sanitising and casting applies inside a group exactly as it does outside one. 1.x bypassed this, which is why <code>Boolean</code> stored raw request strings.</li>
+        <li><b>Malformed JSON is a validation error, not a 500.</b> The raw editor's payload is parsed server-side with <code>JSON_THROW_ON_ERROR</code> and rejected with a message keyed to the field.</li>
+        <li><b><code>-&gt;encrypted()</code> uses <code>Crypt::encryptString()</code></b>, and refuses to layer on top of an encrypting Eloquent cast, because double-encrypting loses the original irrecoverably.</li>
+        <li><b>Decryption failures are reported, not swallowed.</b> A rotated <code>APP_KEY</code> produces a named exception rather than a silent empty array.</li>
+        <li><b>The editor renders values as text, never as HTML.</b> Vue interpolation and <code>&lt;pre&gt;</code> are used throughout; there is no <code>v-html</code> anywhere in the package.</li>
+      </ul>
+    </section>
+
+    <section id="sec-not"><h2>What this package does not do</h2>
+      <p>It does not authorise anything. A <code>Json</code> group forwards <code>-&gt;canSee()</code> to its children, but a key the user should not see is only hidden if you hide it.</p>
+      <div class="note"><b>A note on hidden fields.</b> A field hidden with <code>canSee()</code> or made <code>readonly()</code> is filtered out by Nova before the fill runs, so it writes nothing &mdash; and because a group never deletes a path it did not write, the stored value survives. That is deliberate: the alternative loses data.</div>
+    </section>
+
+    <section id="sec-report"><h2>Reporting a vulnerability</h2>
+      <p>Please review <a href="https://github.com/gabrielesbaiz/nova-field-json/security/policy">our security policy</a> on how to report vulnerabilities. Do not open a public issue.</p>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== UPGRADE ==================== -->
+<div class="page" id="upgrade">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Upgrading to 2.0</h1>
+    <p class="sub">A clean break. Several changes alter what gets written to your JSON columns &mdash; read the behaviour section before you deploy.</p>
+
+    <section id="up-req"><h2>Requirements</h2>
+      <div class="tbl"><table>
+        <thead><tr><th></th><th>1.x</th><th>2.0</th></tr></thead>
+        <tbody>
+          <tr><td>PHP</td><td>8.0+</td><td><b>8.2+</b></td></tr>
+          <tr><td>Laravel</td><td>10, 11, 12</td><td><b>11, 12</b></td></tr>
+          <tr><td>Nova</td><td>4</td><td><b>5</b></td></tr>
+        </tbody>
+      </table></div>
+      <p>Laravel 10 is EOL and has been dropped, and Nova 4 with it.</p>
+    </section>
+
+    <section id="up-renames"><h2>Renames</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>1.x</th><th>2.0</th></tr></thead>
+        <tbody>
+          <tr><td><code>NovaFieldJson</code></td><td><code>Json</code></td></tr>
+          <tr><td><code>NovaFieldJsonServiceProvider</code></td><td><code>FieldServiceProvider</code></td></tr>
+          <tr><td><code>-&gt;ignoreCasting()</code></td><td><code>-&gt;storeAs(StorageFormat::Encoded)</code></td></tr>
+          <tr><td><code>-&gt;saveHistory()</code></td><td><b>removed</b> &mdash; this is now the default</td></tr>
+        </tbody>
+      </table></div>
+      <div class="code"><div class="cap"><span>a starting point</span><b>bash</b></div>
+<pre><code>rg -l 'NovaFieldJson' app/ | xargs sed -i '' \
+  -e 's/NovaFieldJson::make/Json::make/g' \
+  -e 's/use Gabrielesbaiz\\NovaFieldJson\\NovaFieldJson;/use Gabrielesbaiz\\NovaFieldJson\\Json;/g'</code></pre></div>
+      <p>Then grep for <code>saveHistory</code> and <code>ignoreCasting</code> by hand. The provider is auto-discovered &mdash; remove any manual entry from <code>config/app.php</code> or <code>bootstrap/providers.php</code>.</p>
+    </section>
+
+    <section id="up-behaviour"><h2>Behaviour changes that can alter stored data</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>#</th><th>Change</th><th>What to do</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><b>Merging is the default.</b> 1.x nulled the whole column before writing unless you called <code>-&gt;saveHistory()</code>.</td><td>If you relied on the wipe, call <code>-&gt;replaces()</code> explicitly.</td></tr>
+          <tr><td>2</td><td><b>Nothing is deleted that was not written.</b> A key whose field you later delete stays in the column.</td><td>Use <code>-&gt;replaces()</code>, or clear the key once in a migration.</td></tr>
+          <tr><td>3</td><td><b>Values may change type.</b> <code>Boolean</code> &rarr; <code>true</code>, <code>Code::json()</code> &rarr; array, <code>Currency</code> formats, <code>File</code> actually uploads.</td><td>Audit code reading those keys; consider a normalising migration.</td></tr>
+          <tr><td>4</td><td><b>Uncast columns were corrupted in 1.x.</b> 2.0 writes correctly but does not repair existing rows.</td><td>Write a data-fix migration if you see numeric-keyed JSON strings.</td></tr>
+          <tr><td>5</td><td><b>Unsupported children now throw</b> at boot instead of silently storing nothing.</td><td>Remove <code>BelongsTo</code>, <code>Heading</code> and friends from groups.</td></tr>
+          <tr><td>6</td><td><b><code>__set</code> no longer sprays.</b></td><td>Use <code>-&gt;each(fn ($f) =&gt; $f-&gt;prop = $x)</code>.</td></tr>
+          <tr><td>7</td><td><b>Encoding flags changed.</b> <code>è</code> &rarr; <code>&egrave;</code>, <code>\/</code> &rarr; <code>/</code>.</td><td>Byte-comparison tests, checksums and <code>WHERE meta = '&hellip;'</code> queries will break.</td></tr>
+          <tr><td>8</td><td><b>Action fields no longer carry a junk <code>hasCast</code> key.</b></td><td>Remove any defensive reads of it.</td></tr>
+          <tr><td>9</td><td><b>The separator is fixed at <code>-&gt;</code>.</b></td><td>Nothing &mdash; it was never configurable in a way that worked.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="up-new"><h2>New in 2.0</h2>
+      <ul>
+        <li><code>JsonEditor</code> &mdash; four editor modes plus repeatable rows</li>
+        <li><code>-&gt;defaults()</code>, <code>-&gt;pruneNulls()</code>, <code>-&gt;encrypted()</code>, <code>-&gt;jsonFlags()</code>, <code>-&gt;storeAs()</code>, <code>-&gt;replaces()</code></li>
+        <li><code>-&gt;each()</code> / <code>-&gt;apply()</code>, and <code>Json::macro()</code></li>
+        <li><code>Json::resolveForAction()</code>, so <code>-&gt;default()</code> works on action fields</li>
+        <li>Full method forwarding for <code>readonly</code>, <code>rules</code>, <code>help</code>, <code>dependsOn</code>, <code>canSee</code> and ~40 others</li>
+      </ul>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== CHANGELOG ==================== -->
+<div class="page" id="changelog">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Changelog</h1>
+    <p class="sub">Mirrors <code>CHANGELOG.md</code>. The current release in full; older entries summarised.</p>
+
+    <section id="cl-300"><h2>2.0.0 &mdash; 2026-09-27</h2>
+      <p>A clean-break rewrite. See <a href="#/upgrade">Upgrading</a> before deploying &mdash; several changes alter what gets written to your JSON columns.</p>
+      <h3>Added</h3>
+      <ul>
+        <li><code>JsonEditor</code> &mdash; a real Nova field with four editors (tree, key/value, raw, repeatable rows), a read-only index badge and a collapsible detail viewer.</li>
+        <li>Repeatable rows: <code>JsonEditor::make('tiers')-&gt;repeatable([...])-&gt;min(1)-&gt;max(10)-&gt;sortable()</code>.</li>
+        <li><code>-&gt;defaults()</code>, <code>-&gt;pruneNulls()</code>, <code>-&gt;encrypted()</code>, <code>-&gt;jsonFlags()</code>, <code>-&gt;storeAs()</code>, <code>-&gt;replaces()</code> on both fields.</li>
+        <li><code>-&gt;each()</code> / <code>-&gt;apply()</code> escape hatch, and <code>Json</code> is now <code>Macroable</code>.</li>
+        <li>Full method forwarding: <code>readonly</code>, <code>rules</code>, <code>help</code>, <code>dependsOn</code>, <code>canSee</code> and ~40 others now reach the child fields instead of throwing.</li>
+        <li><code>Json::resolveForAction()</code>, so <code>-&gt;default()</code> works on action fields.</li>
+        <li>A Pest suite (93 tests), PHPStan level 6, Pint, and four CI workflows.</li>
+      </ul>
+      <h3>Fixed</h3>
+      <ul>
+        <li><b>Uncast columns were corrupted.</b> A group of 2+ fields on a column with no <code>array</code>/<code>json</code> cast re-read its own encoded output between children.</li>
+        <li><b>Actions only worked for the first model.</b> The &ldquo;clear the old value&rdquo; flag lived on the field instance and was never reset.</li>
+        <li><b>Action fields were polluted.</b> The cast probe called <code>hasCast()</code> on Nova's <code>Fluent</code>, which records an attribute named <code>hasCast</code> and returns truthy rather than failing.</li>
+        <li><b>Child fields never ran their own fill logic.</b> <code>Boolean</code> stored <code>"1"</code>, <code>Code::json()</code> stored a string, <code>File</code> never uploaded.</li>
+        <li>Two groups on one column no longer erase each other, and a group never deletes a path it did not write.</li>
+        <li><code>use Iluminate\Http\Request</code> (typo), and the unused dynamic <code>$field-&gt;wrapper</code>.</li>
+        <li>Strict comparison when detecting null values.</li>
+      </ul>
+      <h3>Changed</h3>
+      <ul>
+        <li>Requires PHP 8.2+, Laravel 11+, Nova 5+.</li>
+        <li><code>NovaFieldJson</code> &rarr; <code>Json</code>; <code>NovaFieldJsonServiceProvider</code> &rarr; <code>FieldServiceProvider</code>.</li>
+        <li><code>-&gt;ignoreCasting()</code> &rarr; <code>-&gt;storeAs(StorageFormat::Encoded)</code>; <code>-&gt;saveHistory()</code> removed.</li>
+        <li>Encoding uses <code>JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR</code>.</li>
+        <li>Writing a property on a group now throws instead of spraying it onto children.</li>
+        <li>Relationship and unfillable fields inside a group now throw at boot.</li>
+      </ul>
+    </section>
+
+    <section id="cl-100"><h2>1.0.0 &mdash; 2025-03-03</h2>
+      <p>Initial release, ported from <a href="https://github.com/armincms/json">armincms/json</a>.</p>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== PROJECT ==================== -->
+<div class="page" id="project">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Project &amp; licence</h1>
+    <p class="sub">The gates a pull request has to pass, the fork caveat, who to thank, and the licence in full.</p>
+
+    <section id="pr-setup"><h2>Getting set up</h2>
+      <p>Nova is a paid package, so you need your own licence to work on this:</p>
+      <div class="code"><div class="cap"><span>terminal</span><b>bash</b></div>
+<pre><code>composer config http-basic.nova.laravel.com "you@example.com" "your-licence-key"
+composer install
+npm install</code></pre></div>
+      <p><code>auth.json</code> is gitignored &mdash; never commit it.</p>
+    </section>
+
+    <section id="pr-gates"><h2>The gates</h2>
+      <div class="code"><div class="cap"><span>terminal</span><b>bash</b></div>
+<pre><code>composer test      <span class="c-c"># pest — 93 tests</span>
+composer analyse   <span class="c-c"># phpstan level 6</span>
+composer format    <span class="c-c"># pint</span>
+npm run test       <span class="c-c"># vitest — 78 tests</span>
+npm run prod       <span class="c-c"># rebuild dist/</span></code></pre></div>
+      <p><code>dist/</code> is committed, because it is the only thing a consuming Nova app loads. <b>Run <code>npm run prod</code> and commit the result whenever you touch <code>resources/</code></b> &mdash; CI fails the build otherwise.</p>
+      <p>The PHP suite covers each of the 1.x defects as a named regression. The JS suite covers the two contracts most likely to break silently on a Nova upgrade: the <code>fill()</code> payload shape and the nested validation key.</p>
+    </section>
+
+    <section id="pr-ci"><h2>A note for outside contributors</h2>
+      <p>CI cannot run on pull requests from forks: GitHub does not expose secrets to them, and without the Nova credentials <code>composer install</code> fails. A maintainer will run the suite locally on your branch. Please say in the PR which checks you ran yourself.</p>
+      <p>CI runs the PHP matrix &mdash; PHP 8.2&ndash;8.4 &times; Laravel 11&ndash;12 &times; lowest/stable &mdash; plus PHPStan, Pint, and an assets job that fails if <code>dist/</code> is out of date.</p>
+    </section>
+
+    <section id="pr-credits"><h2>Credits</h2>
+      <p>Written and maintained by <a href="https://github.com/gabrielesbaiz">Gabriele Sbaiz</a>, with thanks to <a href="https://github.com/gabrielesbaiz/nova-field-json/graphs/contributors">everyone who has contributed</a>.</p>
+      <p>The composer began as a port of <a href="https://github.com/armincms/json">armincms/json</a> by <a href="https://github.com/armincms">Armin Group</a>, and owes it the original idea of rewriting a field's attribute to reach into a JSON column. The 2.0 internals are a rewrite, but the shape of the API is theirs.</p>
+      <p>It also stands on work it does not contain: Laravel, Laravel Nova, and <a href="https://codemirror.net/5/">CodeMirror</a>.</p>
+    </section>
+
+    <section id="pr-conventions"><h2>Conventions</h2>
+      <ul>
+        <li>PHP follows Pint's <code>laravel</code> preset plus strict types; run <code>composer format</code>.</li>
+        <li>Prefer a test that fails before your fix and passes after it.</li>
+        <li>If you change how a value is stored, add a note to <code>UPGRADING.md</code>.</li>
+      </ul>
+      <p>Four workflows gate the repository: <code>run-tests.yml</code>, <code>phpstan.yml</code>, <code>fix-php-code-style-issues.yml</code> and <code>assets.yml</code>.</p>
+    </section>
+
+    <section id="pr-disclaimer"><h2>Disclaimer</h2>
+      <p>This package is provided as is. It writes to your database columns, and 2.0 deliberately changes what some of those writes contain &mdash; reading the <a href="#/upgrade">upgrade notes</a> and backing up affected columns before deploying is the deploying application's responsibility, not this package's.</p>
+    </section>
+
+    <section id="pr-licence"><h2>Licence</h2>
+      <p>MIT, in full, so you never have to leave this page to decide whether you may ship it.</p>
+      <div class="code"><div class="cap"><span>LICENSE.md</span><b>MIT</b></div>
+<pre><code>The MIT License (MIT)
+
+Copyright (c) Gabriele Sbaiz &lt;gabriele@sbaiz.com&gt;
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.</code></pre></div>
+      <p>The MIT licence's warranty disclaimer and limitation of liability apply in full, alongside the disclaimer above.</p>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+<!-- ==================== SPONSOR ==================== -->
+<div class="page" id="sponsor">
+<div class="mx docs">
+  <aside class="sidenav" data-nav aria-label="Documentation"></aside>
+  <div class="body">
+    <h1>Sponsor</h1>
+    <p class="sub">Free forever. Not free to maintain.</p>
+
+    <section id="sp-why"><h2>What sponsorship pays for</h2>
+      <p>Nobody notices a JSON column that keeps its shape. The work that goes unseen is the part that keeps it that way: reading Nova's fill pipeline again after every minor release, checking that a readonly field still cannot have its value pruned, and rebuilding <code>dist/</code> when the asset externals move. Four of the twelve defects fixed in 2.0 threw nothing at all &mdash; finding that kind of thing is slow, unglamorous work. It stays MIT either way.</p>
+      <p>Sponsorship buys the hours to keep this green across new Nova majors: the compatibility passes, the regression tests for bugs nobody has hit yet, and the upgrade notes that say plainly which of your stored values are about to change. Not features &mdash; maintenance. It stays MIT either way.</p>
+      <div class="why"><b>Why ask at all?</b> This package is MIT and always will be. Nothing is paywalled, nothing phones home, and no <b>field mode</b> is held back for sponsors. Sponsorship buys maintenance time, not features &mdash; and if you cannot sponsor, the star and the bug report genuinely help.</div>
+    </section>
+
+    <section id="sp-tiers"><h2>Become a sponsor</h2>
+      <div class="split">
+        <div class="sponsor-card">
+          <div class="price">$5</div>
+          <div class="terms">per month &middot; cancel anytime</div>
+          <a class="btn" href="https://github.com/sponsors/gabrielesbaiz">&#9829; Become a sponsor</a>
+          <p class="fine">Company tiers get your logo in the README and on this page.</p>
+        </div>
+        <div>
+          <p>If this field is holding data in your admin panel at work, the company tier is the one for you &mdash; it is the difference between a side project and a maintained dependency.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="sp-free"><h2>Four ways to help</h2>
+      <div class="ways">
+        <div class="w"><span class="ftag">FREE</span><h3>&#11088; Star the repo</h3><p>Thirty seconds, and it is the first signal another Laravel developer looks at.</p></div>
+        <div class="w"><span class="ftag">FREE</span><h3>&#128027; Open a good issue</h3><p>A reproduction with the model's casts and the field definition is worth more than you think.</p></div>
+        <div class="w"><h3>&#10084;&#65039; Sponsor from $5</h3><p>Monthly, cancel anytime. It pays for the compatibility passes nobody sees.</p></div>
+        <div class="w"><h3>&#127970; Company tier</h3><p>Your logo in the README and here, and a direct line for compatibility questions.</p></div>
+      </div>
+    </section>
+    <div class="pager" data-pager></div>
+  </div>
+  <aside class="onthispage" data-toc aria-label="On this page"><h4>On this page</h4><ol></ol></aside>
+</div>
+</div>
+
+</main>
+
+<footer class="sitefoot">
+  <div class="mx">
+    <div class="cols">
+      <div><h4>Package</h4><ul>
+        <li><a href="https://github.com/gabrielesbaiz/nova-field-json">GitHub</a></li>
+        <li><a href="https://packagist.org/packages/gabrielesbaiz/nova-field-json">Packagist</a></li>
+        <li><a href="#/changelog">Changelog</a></li>
+      </ul></div>
+      <div><h4>Documentation</h4><ul>
+        <li><a href="#/intro">Introduction</a></li>
+        <li><a href="#/install">Installation</a></li>
+        <li><a href="#/storage">Storage &amp; validation</a></li>
+        <li><a href="#/recipes">Recipes</a></li>
+      </ul></div>
+      <div><h4>Reference</h4><ul>
+        <li><a href="#/api">API reference</a></li>
+        <li><a href="#/upgrade">Upgrading from 1.x</a></li>
+        <li><a href="#/troubleshooting">Troubleshooting</a></li>
+      </ul></div>
+      <div><h4>Project</h4><ul>
+        <li><a href="#/security">Security policy</a></li>
+        <li><a href="#/project">Project &amp; licence</a></li>
+        <li><a href="#/sponsor">Sponsor</a></li>
+      </ul></div>
+    </div>
+    <div class="base">
+      <span>MIT licensed &middot; Built by Gabriele Sbaiz</span>
+      <span>Requires a Laravel Nova licence, sold separately</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const root = document.documentElement;
+  root.classList.add('js');
+
+  /* ---------- the page inventory, in nav order ---------- */
+  const NAV = [
+    { group: 'Getting started', pages: [
+      ['home',  'Home'],
+      ['intro', 'Introduction'],
+      ['install', 'Installation'],
+    ]},
+    { group: 'Usage', pages: [
+      ['json',    'Json groups'],
+      ['editor',  'JsonEditor'],
+      ['storage', 'Storage & validation'],
+      ['recipes', 'Recipes'],
+    ]},
+    { group: 'Reference', pages: [
+      ['api',             'API reference'],
+      ['troubleshooting', 'Troubleshooting'],
+    ]},
+    { group: 'Project', pages: [
+      ['security',  'Security'],
+      ['upgrade',   'Upgrading'],
+      ['changelog', 'Changelog'],
+      ['project',   'Project & licence'],
+      ['sponsor',   'Sponsor'],
+    ]},
+  ];
+  const ORDER = NAV.flatMap(g => g.pages);
+  const TITLE = Object.fromEntries(ORDER);
+
+  /* Render the shared site menu into every docs page. */
+  const navHTML = NAV.map(g => (
+    '<div class="group"><h4>' + g.group + '</h4><ul>' +
+    g.pages.map(([id, label]) => '<li><a href="#/' + id + '">' + label + '</a></li>').join('') +
+    '</ul></div>'
+  )).join('');
+  document.querySelectorAll('[data-nav]').forEach(el => { el.innerHTML = navHTML; });
+
+  /* ---------- theme ---------- */
+  const mode = document.getElementById('mode');
+  const prefersDark = matchMedia('(prefers-color-scheme: dark)');
+  const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : prefersDark.matches;
+  const syncLabel = () => { mode.textContent = isDark() ? 'Light' : 'Dark'; };
+  mode.addEventListener('click', () => { root.dataset.theme = isDark() ? 'light' : 'dark'; syncLabel(); });
+  prefersDark.addEventListener('change', syncLabel);
+  syncLabel();
+
+  /* ---------- scroll progress ---------- */
+  const bar = document.getElementById('progress');
+  let ticking = false;
+  const paintBar = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    bar.style.width = (max > 0 ? Math.min(100, Math.max(0, (scrollY / max) * 100)) : 0) + '%';
+    ticking = false;
+  };
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(paintBar); } }, { passive: true });
+  addEventListener('resize', paintBar, { passive: true });
+
+  /* ---------- reveal (landing only) ---------- */
+  const io = new IntersectionObserver(es => {
+    for (const e of es) if (e.isIntersecting) e.target.classList.add('seen');
+  }, { threshold: .1, rootMargin: '0px 0px -6% 0px' });
+  const reveals = [...document.querySelectorAll('.reveal')];
+  reveals.forEach(el => io.observe(el));
+  /* Backstop: never leave a section invisible because the observer stayed quiet. */
+  setTimeout(() => reveals.forEach(el => el.classList.add('seen')), 1200);
+
+  /* ---------- the Nova panel mock, used on two pages ---------- */
+  const PANEL = [
+    { d: 0, k: 'type',     t: 'string',  v: '"seasonal"' },
+    { d: 0, k: 'discount', t: 'object',  v: '{3}', kids: [
+      { d: 1, k: 'kind',   t: 'string',  v: '"percent"' },
+      { d: 1, k: 'value',  t: 'number',  v: '12' },
+      { d: 1, k: 'limits', t: 'object',  v: '{1}', kids: [
+        { d: 2, k: 'max',  t: 'number',  v: '100' },
+      ] },
+    ] },
+    { d: 0, k: 'featured', t: 'boolean', v: 'true' },
+  ];
+  function mountPanel(host, open) {
+    if (!host) return;
+    const draw = () => {
+      host.innerHTML = '';
+      (function walk(nodes) {
+        nodes.forEach(n => {
+          const row = document.createElement('div');
+          row.className = 'prow';
+          row.style.paddingLeft = (0.95 + n.d * 1.05) + 'rem';
+          if (n.kids) {
+            const tw = document.createElement('button');
+            tw.type = 'button'; tw.className = 'tw';
+            tw.textContent = open.has(n.k) ? '▾' : '▸';
+            tw.setAttribute('aria-expanded', String(open.has(n.k)));
+            tw.setAttribute('aria-label', (open.has(n.k) ? 'Collapse ' : 'Expand ') + n.k);
+            tw.addEventListener('click', () => { open.has(n.k) ? open.delete(n.k) : open.add(n.k); draw(); });
+            row.appendChild(tw);
+          } else {
+            const sp = document.createElement('span'); sp.className = 'tw'; row.appendChild(sp);
+          }
+          const k = document.createElement('span'); k.className = 'kx'; k.textContent = n.k;
+          const b = document.createElement('span'); b.className = 'badge t-' + n.t; b.textContent = n.t;
+          const v = document.createElement('span'); v.className = 'val'; v.textContent = n.v;
+          row.append(k, b, v);
+          host.appendChild(row);
+          if (n.kids && open.has(n.k)) walk(n.kids);
+        });
+      })(PANEL);
+    };
+    draw();
+  }
+  mountPanel(document.getElementById('panelRows'), new Set(['discount']));
+  mountPanel(document.getElementById('docPanelRows'), new Set(['discount', 'limits']));
+
+  /* ---------- router ---------- */
+  const pages = [...document.querySelectorAll('.page')];
+  const topLinks = [...document.querySelectorAll('#nav a[href^="#/"]')];
+  const menuBtn = document.getElementById('menuBtn');
+  let sections = [];
+  let tocSpy = null;
+
+  function buildToc(page) {
+    if (tocSpy) { tocSpy.disconnect(); tocSpy = null; }
+    sections = [];
+    const rail = page.querySelector('[data-toc]');
+    if (!rail) return;
+    const ol = rail.querySelector('ol');
+    ol.innerHTML = '';
+    const secs = [...page.querySelectorAll('.body section[id]')];
+    if (secs.length < 3) { rail.style.display = 'none'; return; }
+    rail.style.display = '';
+    secs.forEach(el => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#' + el.id;
+      a.textContent = (el.querySelector('h2')?.textContent || el.id).trim();
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' });
+      });
+      li.appendChild(a); ol.appendChild(li);
+      sections.push({ a, el });
+    });
+    tocSpy = new IntersectionObserver(es => {
+      const vis = es.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (!vis.length) return;
+      const hit = sections.find(s => s.el === vis[0].target);
+      if (hit) sections.forEach(s => s.a.setAttribute('aria-current', String(s === hit)));
+    }, { rootMargin: '-14% 0px -70% 0px' });
+    sections.forEach(s => tocSpy.observe(s.el));
+  }
+
+  function buildPager(page, id) {
+    const host = page.querySelector('[data-pager]');
+    if (!host) return;
+    const i = ORDER.findIndex(([p]) => p === id);
+    const prev = i > 0 ? ORDER[i - 1] : null;
+    const next = i >= 0 && i < ORDER.length - 1 ? ORDER[i + 1] : null;
+    host.innerHTML =
+      (prev ? '<a href="#/' + prev[0] + '">Previous<b>' + prev[1] + '</b></a>' : '<span></span>') +
+      (next ? '<a class="next" href="#/' + next[0] + '">Next<b>' + next[1] + '</b></a>' : '');
+  }
+
+  function route() {
+    const id = location.hash.replace('#/', '') || 'home';
+    const target = document.getElementById(id) && document.getElementById(id).classList.contains('page') ? id : 'home';
+    pages.forEach(p => p.classList.toggle('hidden', p.id !== target));
+    topLinks.forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#/' + target ? 'page' : 'false'));
+    /* Scope to the visible page: the menu is rendered into every docs page,
+       so marking them all would leave 13 elements claiming aria-current. */
+    document.querySelectorAll('.sidenav a[aria-current]').forEach(a => a.removeAttribute('aria-current'));
+    document.querySelectorAll('#' + target + ' .sidenav a').forEach(a => {
+      if (a.getAttribute('href') === '#/' + target) a.setAttribute('aria-current', 'page');
+    });
+    document.title = target === 'home'
+      ? 'NovaField Json Docs'
+      : TITLE[target] + ' — NovaField Json Docs';
+    const page = document.getElementById(target);
+    buildToc(page);
+    buildPager(page, target);
+    document.querySelectorAll('.sidenav.open').forEach(el => el.classList.remove('open'));
+    menuBtn.setAttribute('aria-expanded', 'false');
+    scrollTo({ top: 0, behavior: 'auto' });
+    paintBar();
+  }
+  addEventListener('hashchange', route);
+
+  menuBtn.addEventListener('click', () => {
+    const nav = document.querySelector('.page:not(.hidden) .sidenav');
+    if (!nav) { location.hash = '#/intro'; return; }
+    const open = nav.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded', String(open));
+  });
+
+  /* ---------- command palette ---------- */
+  const pal = document.getElementById('pal');
+  const input = document.getElementById('palInput');
+  const list = document.getElementById('palList');
+  const open = document.getElementById('openPal');
+  document.getElementById('kbd').textContent =
+    /Mac|iPhone|iPad/.test(navigator.platform || '') ? '⌘K' : 'Ctrl K';
+
+  let rows = [], cursor = 0;
+  const select = () => rows.forEach((r, i) => r.li.setAttribute('aria-selected', String(i === cursor)));
+  const go = item => {
+    pal.hidden = true; open.focus();
+    if (item.page) { location.hash = '#/' + item.page; }
+    else if (item.el) { item.el.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' }); }
+  };
+  /* Pages come from the same NAV array the menu is built from, and sections
+     from the same list the right rail uses, so the three cannot drift. */
+  const items = () => [
+    ...ORDER.map(([id, label]) => ({ label, hint: 'Page', page: id })),
+    ...sections.map(s => ({ label: s.a.textContent, hint: 'Section', el: s.el })),
+  ];
+  const render = (q = '') => {
+    const hits = items().filter(i => i.label.toLowerCase().includes(q.trim().toLowerCase()));
+    list.innerHTML = ''; rows = []; cursor = 0;
+    if (!hits.length) {
+      const li = document.createElement('li');
+      li.className = 'empty'; li.textContent = 'Nothing matches “' + q.trim() + '”.';
+      list.appendChild(li);
+      return;
+    }
+    hits.forEach((item, i) => {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'option');
+      const b = document.createElement('b'); b.textContent = item.label;
+      const em = document.createElement('em'); em.textContent = item.hint;
+      li.append(b, em);
+      li.addEventListener('click', () => go(item));
+      li.addEventListener('mousemove', () => { cursor = i; select(); });
+      list.appendChild(li); rows.push({ li, item });
+    });
+    select();
+  };
+  const show = () => { pal.hidden = false; input.value = ''; render(); input.focus(); };
+  open.addEventListener('click', show);
+  input.addEventListener('input', () => render(input.value));
+  pal.addEventListener('click', e => { if (e.target === pal) { pal.hidden = true; open.focus(); } });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { pal.hidden = true; open.focus(); }
+    else if (e.key === 'ArrowDown' && rows.length) { e.preventDefault(); cursor = (cursor + 1) % rows.length; select(); }
+    else if (e.key === 'ArrowUp' && rows.length) { e.preventDefault(); cursor = (cursor - 1 + rows.length) % rows.length; select(); }
+    else if (e.key === 'Enter' && rows[cursor]) { e.preventDefault(); go(rows[cursor].item); }
+  });
+  addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); pal.hidden ? show() : (pal.hidden = true); }
+    else if (e.key === '/' && pal.hidden && !/input|textarea/i.test(e.target.tagName)) { e.preventDefault(); show(); }
+  });
+
+  route();
+  paintBar();
+})();
+</script>

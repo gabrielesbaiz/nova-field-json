@@ -1,0 +1,46 @@
+name: assets
+
+on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+
+    runs-on: ubuntu-latest
+
+    env:
+      COMPOSER_AUTH: '{"http-basic":{"nova.laravel.com":{"username":"${{ secrets.NOVA_USERNAME }}","password":"${{ secrets.NOVA_LICENSE_KEY }}"}}}'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      # laravel-nova-devtool is a Composer package that package.json installs
+      # from vendor/ -- it is not published to npm, so Composer must run first.
+      - run: composer update --prefer-dist --no-interaction --no-progress
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run test
+
+      - run: npm run prod
+
+      - name: Fail if dist/ is out of date
+        run: |
+          git diff --stat --exit-code -- dist/ \
+            || { echo "::error::dist/ is stale. Run 'npm run prod' and commit the result."; exit 1; }

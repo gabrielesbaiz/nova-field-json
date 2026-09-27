@@ -1,0 +1,27 @@
+name: code style
+
+on:
+  push:
+    branches: [main, 'release/**']
+
+permissions:
+  contents: write
+
+jobs:
+  pint:
+    if: github.repository == github.event.repository.full_name
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Run Pint
+        uses: aglipanci/laravel-pint-action@2.5
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: fix code style with pint"
