@@ -17,7 +17,7 @@ mix
       path: 'vendor/laravel/nova/public/app.css',
     }),
   ])
-  .nova('gabrielesbaiz/nova-field-json')
+  .nova('gabrielesbaiz-nova-field-json')
   .version()
 
 mix.options({ terser: { extractComments: false } })

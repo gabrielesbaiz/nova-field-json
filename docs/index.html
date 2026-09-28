@@ -267,7 +267,7 @@ a{color:var(--accent-text)}
 
 <header class="top">
   <div class="mx in">
-    <a class="brand" href="#/home">NovaField <em>Json</em> <span class="ver">2.0.0</span></a>
+    <a class="brand" href="#/home">NovaField <em>Json</em> <span class="ver">2.0.1</span></a>
     <nav id="nav">
       <a href="#/intro">Introduction</a>
       <a href="#/install">Install</a>
@@ -306,7 +306,7 @@ a{color:var(--accent-text)}
     <div>
       <img class="mark" src="art/nova-field-json-logo.png"
            alt="NovaField Json" width="2172" height="724">
-      <p class="eyebrow">Laravel Nova field &middot; 2.0.0</p>
+      <p class="eyebrow">Laravel Nova field &middot; 2.0.1</p>
       <h1>Structured data,<br>one JSON column.</h1>
       <p class="lede">
         <b>Json::make()</b> merges ordinary Nova fields into a single JSON column.
@@ -321,7 +321,7 @@ a{color:var(--accent-text)}
         <span class="chip">PHP <b>8.2+</b></span>
         <span class="chip">Laravel <b>11 &middot; 12</b></span>
         <span class="chip">Nova <b>5</b></span>
-        <span class="chip"><b>93</b> Pest</span>
+        <span class="chip"><b>94</b> Pest</span>
         <span class="chip"><b>78</b> Vitest</span>
         <span class="chip">dist <b>83 KB</b> gzip</span>
       </div>
@@ -1286,6 +1286,13 @@ must be a number.</code></pre></div>
       <p>2.0 writes correctly but does not repair existing rows. Write a data-fix migration: for each affected row, <code>json_decode()</code> element <code>0</code>, merge the remaining string keys over it, and write it back.</p>
     </section>
 
+    <section id="tr-notloading"><h2>Uncaught SyntaxError: Unexpected token '&lt;'</h2>
+      <p>The browser asked for the editor's JavaScript and got an HTML page instead. On <b>2.0.0</b> this happened to everyone: the asset was registered under a name containing a slash, and Nova's <code>/nova-api/scripts/{script}</code> route cannot match one, so every request fell through to the 404 page.</p>
+      <div class="code"><div class="cap"><span>terminal</span><b>bash</b></div>
+<pre><code>composer require gabrielesbaiz/nova-field-json:^2.0.1</code></pre></div>
+      <p>If you see it on a later version, the asset URL is resolving to something that is not your <code>dist/</code> file &mdash; check the Network tab for the failing request and confirm <code>dist/mix-manifest.json</code> exists in the installed package.</p>
+    </section>
+
     <section id="tr-unstyled"><h2>The editor renders as an unstyled block</h2>
       <p><code>dist/</code> is missing or stale. It is committed to the repository because it is the only thing a consuming application loads:</p>
       <div class="code"><div class="cap"><span>terminal</span><b>bash</b></div>
@@ -1432,6 +1439,13 @@ must be a number.</code></pre></div>
     <h1>Changelog</h1>
     <p class="sub">Mirrors <code>CHANGELOG.md</code>. The current release in full; older entries summarised.</p>
 
+    <section id="cl-201"><h2>2.0.1 &mdash; 2026-09-28</h2>
+      <h3>Fixed</h3>
+      <ul>
+        <li><b>The editor never loaded.</b> The field registered its Nova asset as <code>gabrielesbaiz/nova-field-json</code>. Nova serves assets from <code>/nova-api/scripts/{script}</code>, whose route parameter does not match a slash, so the browser received the HTML 404 page and reported <code>Uncaught SyntaxError: Unexpected token '&lt;'</code>. The asset is now <code>gabrielesbaiz-nova-field-json</code>. <code>Json</code> groups were unaffected &mdash; they register no assets &mdash; so only <code>JsonEditor</code> was broken.</li>
+      </ul>
+    </section>
+
     <section id="cl-300"><h2>2.0.0 &mdash; 2026-09-27</h2>
       <p>A clean-break rewrite. See <a href="#/upgrade">Upgrading</a> before deploying &mdash; several changes alter what gets written to your JSON columns.</p>
       <h3>Added</h3>
@@ -1442,7 +1456,7 @@ must be a number.</code></pre></div>
         <li><code>-&gt;each()</code> / <code>-&gt;apply()</code> escape hatch, and <code>Json</code> is now <code>Macroable</code>.</li>
         <li>Full method forwarding: <code>readonly</code>, <code>rules</code>, <code>help</code>, <code>dependsOn</code>, <code>canSee</code> and ~40 others now reach the child fields instead of throwing.</li>
         <li><code>Json::resolveForAction()</code>, so <code>-&gt;default()</code> works on action fields.</li>
-        <li>A Pest suite (93 tests), PHPStan level 6, Pint, and four CI workflows.</li>
+        <li>A Pest suite (94 tests), PHPStan level 6, Pint, and four CI workflows.</li>
       </ul>
       <h3>Fixed</h3>
       <ul>
@@ -1493,7 +1507,7 @@ npm install</code></pre></div>
 
     <section id="pr-gates"><h2>The gates</h2>
       <div class="code"><div class="cap"><span>terminal</span><b>bash</b></div>
-<pre><code>composer test      <span class="c-c"># pest — 93 tests</span>
+<pre><code>composer test      <span class="c-c"># pest — 94 tests</span>
 composer analyse   <span class="c-c"># phpstan level 6</span>
 composer format    <span class="c-c"># pint</span>
 npm run test       <span class="c-c"># vitest — 78 tests</span>

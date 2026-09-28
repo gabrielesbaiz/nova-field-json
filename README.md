@@ -87,7 +87,7 @@ nothing is loaded into Nova's bundle.
 ## Testing
 
 ```bash
-composer test      # pest — 93 tests
+composer test      # pest — 94 tests
 composer analyse   # phpstan level 6
 composer format    # pint
 npm run test       # vitest — 78 tests
