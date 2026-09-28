@@ -2,6 +2,18 @@
 
 All notable changes to `nova-field-json` will be documented in this file.
 
+## 2.0.1 - 2026-09-28
+
+### Fixed
+
+- **The editor never loaded.** The field registered its Nova asset as
+  `gabrielesbaiz/nova-field-json`. Nova serves assets from
+  `/nova-api/scripts/{script}`, whose route parameter does not match a slash,
+  so the browser received the HTML 404 page and reported
+  `Uncaught SyntaxError: Unexpected token '<'`. The asset is now named
+  `gabrielesbaiz-nova-field-json`. `Json` groups were unaffected — they need
+  no assets — so only `JsonEditor` was broken.
+
 ## 2.0.0 - 2026-09-27
 
 A clean-break rewrite. See [UPGRADING.md](UPGRADING.md) before deploying —

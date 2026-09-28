@@ -10,9 +10,14 @@ use Laravel\Nova\Nova;
 class FieldServiceProvider extends ServiceProvider
 {
     /**
-     * Asset name registered with Nova; must match JsonEditor::$component's package.
+     * Asset name registered with Nova.
+     *
+     * Nova serves an asset from /nova-api/scripts/{script}, a route with no
+     * slash in its parameter, so a name carrying one never routes: the browser
+     * gets the 404 page and reports "Unexpected token '<'" on line 1 of what
+     * it expected to be JavaScript.
      */
-    public const ASSET = 'gabrielesbaiz/nova-field-json';
+    public const ASSET = 'gabrielesbaiz-nova-field-json';
 
     public function boot(): void
     {
