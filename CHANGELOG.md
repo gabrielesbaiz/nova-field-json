@@ -2,6 +2,16 @@
 
 All notable changes to `nova-field-json` will be documented in this file.
 
+## 2.1.0 - 2026-09-28
+
+### Added
+
+- **Laravel 13 support.** `illuminate/contracts`, `illuminate/database` and
+  `illuminate/support` accept `^13.0`, and the test matrix runs it on PHP 8.3
+  and 8.4 — Laravel 13 requires PHP 8.3, so the 8.2 leg is excluded. The dev
+  dependencies now accept Pest 4 and Testbench 11 next to the 3.x and 9/10.x
+  lines. No runtime code changed; the suite passes unmodified on Laravel 13.
+
 ## 2.0.1 - 2026-09-28
 
 ### Fixed

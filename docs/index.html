@@ -267,7 +267,7 @@ a{color:var(--accent-text)}
 
 <header class="top">
   <div class="mx in">
-    <a class="brand" href="#/home">NovaField <em>Json</em> <span class="ver">2.0.1</span></a>
+    <a class="brand" href="#/home">NovaField <em>Json</em> <span class="ver">2.1.0</span></a>
     <nav id="nav">
       <a href="#/intro">Introduction</a>
       <a href="#/install">Install</a>
@@ -306,7 +306,7 @@ a{color:var(--accent-text)}
     <div>
       <img class="mark" src="art/nova-field-json-logo.png"
            alt="NovaField Json" width="2172" height="724">
-      <p class="eyebrow">Laravel Nova field &middot; 2.0.1</p>
+      <p class="eyebrow">Laravel Nova field &middot; 2.1.0</p>
       <h1>Structured data,<br>one JSON column.</h1>
       <p class="lede">
         <b>Json::make()</b> merges ordinary Nova fields into a single JSON column.
@@ -319,7 +319,7 @@ a{color:var(--accent-text)}
       </div>
       <div class="meta">
         <span class="chip">PHP <b>8.2+</b></span>
-        <span class="chip">Laravel <b>11 &middot; 12</b></span>
+        <span class="chip">Laravel <b>11 &middot; 12 &middot; 13</b></span>
         <span class="chip">Nova <b>5</b></span>
         <span class="chip"><b>94</b> Pest</span>
         <span class="chip"><b>78</b> Vitest</span>
@@ -602,7 +602,7 @@ meta-&gt;value</code></pre>
         <thead><tr><th>Requirement</th><th>Version</th></tr></thead>
         <tbody>
           <tr><td>PHP</td><td><code>^8.2</code></td></tr>
-          <tr><td>Laravel</td><td><code>^11.0</code> or <code>^12.0</code></td></tr>
+          <tr><td>Laravel</td><td><code>^11.0</code>, <code>^12.0</code> or <code>^13.0</code> &mdash; Laravel 13 needs PHP 8.3+</td></tr>
           <tr><td>Laravel Nova</td><td><code>^5.0</code></td></tr>
           <tr><td>ext-json</td><td>required</td></tr>
         </tbody>
@@ -1438,6 +1438,13 @@ must be a number.</code></pre></div>
   <div class="body">
     <h1>Changelog</h1>
     <p class="sub">Mirrors <code>CHANGELOG.md</code>. The current release in full; older entries summarised.</p>
+
+    <section id="cl-210"><h2>2.1.0 &mdash; 2026-09-28</h2>
+      <h3>Added</h3>
+      <ul>
+        <li><b>Laravel 13 support.</b> <code>illuminate/*</code> accepts <code>^13.0</code>, and the CI matrix runs it on PHP 8.3 and 8.4 &mdash; Laravel 13 itself requires PHP 8.3, so the 8.2 leg is excluded. The dev dependencies accept Pest 4 and Testbench 11 alongside the 3.x and 9/10.x lines they already allowed. No runtime code changed.</li>
+      </ul>
+    </section>
 
     <section id="cl-201"><h2>2.0.1 &mdash; 2026-09-28</h2>
       <h3>Fixed</h3>

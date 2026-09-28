@@ -52,7 +52,7 @@ will not accept a group. `JsonEditor` *is* a real field, and costs you an 83 KB
 ## Requirements
 
 - PHP 8.2+
-- Laravel 11 or 12
+- Laravel 11, 12 or 13
 - Laravel Nova 5 — a paid package; you need your own licence
 
 ## Installation
@@ -100,7 +100,7 @@ fields being denied their own fill pipeline. The JS suite covers the two
 contracts most likely to break silently on a Nova upgrade — the `fill()` payload
 shape and the nested validation key.
 
-CI runs the PHP matrix (PHP 8.2–8.4 × Laravel 11–12 × lowest/stable), PHPStan,
+CI runs the PHP matrix (PHP 8.2–8.4 × Laravel 11–13 × lowest/stable), PHPStan,
 Pint, and an assets job that fails if `dist/` is out of date.
 
 ## Contributing
